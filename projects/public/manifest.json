@@ -1,0 +1,9 @@
+{
+  "name": "GrowthMind",
+  "short_name": "GrowthMind",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070A14",
+  "theme_color": "#7C5CFF",
+  "icons": []
+}

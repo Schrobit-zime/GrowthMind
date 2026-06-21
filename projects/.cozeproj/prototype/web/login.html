@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 === */
+      --color-primary:              #7C5CFF;
+      --color-primary-container:    rgba(124,92,255,0.15);
+      --color-on-primary:           #ffffff;
+      /* === 强调色 === */
+      --color-accent:               #69E7FF;
+      --color-accent-container:     rgba(105,231,255,0.12);
+      /* === 背景 / 表面（毛玻璃层级） === */
+      --color-background:                 #070A14;
+      --color-surface-container-lowest:   rgba(255,255,255,0.03);
+      --color-surface:                    rgba(255,255,255,0.05);
+      --color-surface-container:          rgba(255,255,255,0.08);
+      --color-surface-container-high:     rgba(255,255,255,0.12);
+      --color-surface-container-highest:  rgba(255,255,255,0.16);
+      /* === 文字 === */
+      --color-on-surface:           #F7FAFF;
+      --color-on-surface-variant:   #9AA7C7;
+      /* === 功能色 === */
+      --color-success:  #62FAD3;
+      --color-error:    #FF6B7A;
+      --color-warning:  #F5A623;
+      /* === 边框 === */
+      --color-outline:          rgba(255,255,255,0.12);
+      --color-outline-variant:  rgba(255,255,255,0.06);
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 2px 12px rgba(0,0,0,0.35);
+      --shadow-float:  0 10px 30px rgba(0,0,0,0.45);
+      --shadow-dialog: 0 25px 60px rgba(0,0,0,0.55);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <!-- 图片兜底 -->
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans min-h-screen flex items-center justify-center relative overflow-hidden">
+
+  <!-- 极光渐变装饰元素 -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <!-- 左上角极光 -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-30 blur-3xl" style="background: radial-gradient(circle, rgba(124,92,255,0.5) 0%, transparent 70%);"></div>
+    <!-- 右上角极光 -->
+    <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-25 blur-3xl" style="background: radial-gradient(circle, rgba(105,231,255,0.45) 0%, transparent 70%);"></div>
+    <!-- 左下角极光 -->
+    <div class="absolute -bottom-24 -left-24 w-72 h-72 rounded-full opacity-20 blur-3xl" style="background: radial-gradient(circle, rgba(124,92,255,0.4) 0%, transparent 70%);"></div>
+    <!-- 右下角极光 -->
+    <div class="absolute -bottom-16 -right-16 w-64 h-64 rounded-full opacity-20 blur-3xl" style="background: radial-gradient(circle, rgba(105,231,255,0.35) 0%, transparent 70%);"></div>
+    <!-- 中间偏上光晕 -->
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-15 blur-3xl" style="background: radial-gradient(circle, rgba(124,92,255,0.3) 0%, transparent 70%);"></div>
+  </div>
+
+  <!-- @main-content:start -->
+  <main class="relative z-10 w-full max-w-4xl mx-auto px-6 py-10 flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+
+    <!-- 左侧品牌区 -->
+    <div class="flex-1 text-center lg:text-left">
+      <!-- Logo -->
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-float mb-6">
+        <i data-lucide="brain" class="w-8 h-8 text-white"></i>
+      </div>
+      <!-- 品牌名 -->
+      <h1 class="text-3xl lg:text-4xl font-bold tracking-tight text-on-surface mb-3">GrowthMind</h1>
+      <!-- 副标题 -->
+      <p class="text-base lg:text-lg text-on-surface-variant leading-relaxed max-w-sm mx-auto lg:mx-0">
+        记录成长，遇见更好的自己
+      </p>
+      <!-- 品牌特性列表 -->
+      <div class="hidden lg:flex flex-col gap-4 mt-8">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shrink-0">
+            <i data-lucide="sparkles" class="w-4 h-4 text-primary"></i>
+          </div>
+          <span class="text-sm text-on-surface-variant">AI 驱动的成长分析与建议</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-accent-container flex items-center justify-center shrink-0">
+            <i data-lucide="target" class="w-4 h-4 text-accent"></i>
+          </div>
+          <span class="text-sm text-on-surface-variant">多维目标设定与进度追踪</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shrink-0">
+            <i data-lucide="chart-line" class="w-4 h-4 text-primary"></i>
+          </div>
+          <span class="text-sm text-on-surface-variant">可视化仪表盘，成长一目了然</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧表单卡片（毛玻璃效果） -->
+    <div class="w-full max-w-md">
+      <div class="bg-surface-container-highest/60 backdrop-blur-2xl border border-outline-variant/20 rounded-2xl shadow-float p-8">
+
+        <!-- Tab 切换：登录 / 注册 -->
+        <div id="auth-tabs" class="flex bg-surface-container rounded-lg p-1 mb-8">
+          <button id="tab-login" class="flex-1 py-2 text-sm font-semibold rounded-md transition-all bg-primary text-on-primary">
+            登录
+          </button>
+          <button id="tab-register" class="flex-1 py-2 text-sm font-semibold rounded-md transition-all text-on-surface-variant hover:text-on-surface">
+            注册
+          </button>
+        </div>
+
+        <!-- 登录表单 -->
+        <form id="form-login" class="space-y-5">
+          <!-- 邮箱输入框 -->
+          <div>
+            <label for="login-email" class="block text-sm font-medium text-on-surface mb-1.5">邮箱</label>
+            <div class="relative">
+              <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/60"></i>
+              <input id="login-email" type="email" class="w-full bg-surface-container border-none rounded-lg pl-10 pr-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" placeholder="请输入邮箱地址" autocomplete="email" />
+            </div>
+          </div>
+
+          <!-- 密码输入框 -->
+          <div>
+            <label for="login-password" class="block text-sm font-medium text-on-surface mb-1.5">密码</label>
+            <div class="relative">
+              <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/60"></i>
+              <input id="login-password" type="password" class="w-full bg-surface-container border-none rounded-lg pl-10 pr-10 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" placeholder="请输入密码" autocomplete="current-password" />
+              <button id="btn-toggle-login-password" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60 hover:text-on-surface-variant transition-colors">
+                <i data-lucide="eye-off" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 忘记密码 -->
+          <div class="flex justify-end">
+            <a id="link-forgot-password" href="javascript:void(0)" class="text-xs text-primary hover:text-primary/80 transition-colors font-medium">
+              忘记密码？
+            </a>
+          </div>
+
+          <!-- 登录按钮 -->
+          <button id="btn-login-submit" type="submit" class="w-full py-2.5 rounded-lg text-sm font-semibold text-on-primary transition-all hover:opacity-90 active:scale-[0.98] bg-gradient-to-r from-primary to-accent shadow-lg shadow-primary/25">
+            登录
+          </button>
+        </form>
+
+        <!-- 注册表单（默认隐藏） -->
+        <form id="form-register" class="space-y-5 hidden">
+          <!-- 邮箱输入框 -->
+          <div>
+            <label for="register-email" class="block text-sm font-medium text-on-surface mb-1.5">邮箱</label>
+            <div class="relative">
+              <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/60"></i>
+              <input id="register-email" type="email" class="w-full bg-surface-container border-none rounded-lg pl-10 pr-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" placeholder="请输入邮箱地址" autocomplete="email" />
+            </div>
+          </div>
+
+          <!-- 密码输入框 -->
+          <div>
+            <label for="register-password" class="block text-sm font-medium text-on-surface mb-1.5">密码</label>
+            <div class="relative">
+              <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/60"></i>
+              <input id="register-password" type="password" class="w-full bg-surface-container border-none rounded-lg pl-10 pr-10 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" placeholder="请设置密码（至少6位）" autocomplete="new-password" />
+              <button id="btn-toggle-register-password" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60 hover:text-on-surface-variant transition-colors">
+                <i data-lucide="eye-off" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 确认密码输入框（仅注册模式） -->
+          <div>
+            <label for="register-confirm-password" class="block text-sm font-medium text-on-surface mb-1.5">确认密码</label>
+            <div class="relative">
+              <i data-lucide="lock-keyhole" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/60"></i>
+              <input id="register-confirm-password" type="password" class="w-full bg-surface-container border-none rounded-lg pl-10 pr-10 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" placeholder="请再次输入密码" autocomplete="new-password" />
+              <button id="btn-toggle-register-confirm-password" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60 hover:text-on-surface-variant transition-colors">
+                <i data-lucide="eye-off" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 注册按钮 -->
+          <button id="btn-register-submit" type="submit" class="w-full py-2.5 rounded-lg text-sm font-semibold text-on-primary transition-all hover:opacity-90 active:scale-[0.98] bg-gradient-to-r from-primary to-accent shadow-lg shadow-primary/25">
+            注册
+          </button>
+
+          <!-- 已有账号提示 -->
+          <p class="text-center text-xs text-on-surface-variant">
+            已有账号？<a id="link-to-login" href="javascript:void(0)" class="text-primary hover:text-primary/80 font-medium transition-colors">立即登录</a>
+          </p>
+        </form>
+
+        <!-- 登录表单底部提示（仅登录模式显示） -->
+        <p id="login-footer-hint" class="text-center text-xs text-on-surface-variant mt-6">
+          还没有账号？<a id="link-to-register" href="javascript:void(0)" class="text-primary hover:text-primary/80 font-medium transition-colors">立即注册</a>
+        </p>
+
+      </div>
+    </div>
+
+  </main>
+  <!-- @main-content:end -->
+
+  <!-- Toast 提示容器 -->
+  <div id="toast-container" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none">
+    <div id="toast-msg" class="hidden bg-surface-container-highest backdrop-blur-xl border border-outline-variant/30 rounded-xl shadow-dialog px-5 py-3 text-sm text-on-surface font-medium transition-all duration-300"></div>
+  </div>
+
+  <script>
+    $(function () {
+
+      // ========== Tab 切换 ==========
+      $('#tab-login').on('click', function () {
+        $('#tab-login').addClass('bg-primary text-on-primary').removeClass('text-on-surface-variant hover:text-on-surface');
+        $('#tab-register').removeClass('bg-primary text-on-primary').addClass('text-on-surface-variant hover:text-on-surface');
+        $('#form-login').removeClass('hidden');
+        $('#form-register').addClass('hidden');
+        $('#login-footer-hint').removeClass('hidden');
+      });
+
+      $('#tab-register').on('click', function () {
+        $('#tab-register').addClass('bg-primary text-on-primary').removeClass('text-on-surface-variant hover:text-on-surface');
+        $('#tab-login').removeClass('bg-primary text-on-primary').addClass('text-on-surface-variant hover:text-on-surface');
+        $('#form-register').removeClass('hidden');
+        $('#form-login').addClass('hidden');
+        $('#login-footer-hint').addClass('hidden');
+      });
+
+      // 底部链接切换到注册
+      $('#link-to-register').on('click', function () {
+        $('#tab-register').trigger('click');
+      });
+
+      // 注册表单底部链接切换到登录
+      $('#link-to-login').on('click', function () {
+        $('#tab-login').trigger('click');
+      });
+
+      // ========== 密码显隐切换 ==========
+      function togglePassword(inputId, btnId) {
+        const $input = $('#' + inputId);
+        const $btn = $('#' + btnId);
+        const $icon = $btn.find('i');
+
+        if ($input.attr('type') === 'password') {
+          $input.attr('type', 'text');
+          $icon.attr('data-lucide', 'eye');
+        } else {
+          $input.attr('type', 'password');
+          $icon.attr('data-lucide', 'eye-off');
+        }
+        lucide.createIcons();
+      }
+
+      $('#btn-toggle-login-password').on('click', function () {
+        togglePassword('login-password', 'btn-toggle-login-password');
+      });
+
+      $('#btn-toggle-register-password').on('click', function () {
+        togglePassword('register-password', 'btn-toggle-register-password');
+      });
+
+      $('#btn-toggle-register-confirm-password').on('click', function () {
+        togglePassword('register-confirm-password', 'btn-toggle-register-confirm-password');
+      });
+
+      // ========== Toast 提示 ==========
+      function showToast(msg) {
+        const $toast = $('#toast-msg');
+        $toast.text(msg).removeClass('hidden').css('opacity', '1');
+        clearTimeout($toast.data('timer'));
+        $toast.data('timer', setTimeout(function () {
+          $toast.css('opacity', '0');
+          setTimeout(function () { $toast.addClass('hidden'); }, 300);
+        }, 2500));
+      }
+
+      // ========== 登录提交 ==========
+      $('#form-login').on('submit', function (e) {
+        e.preventDefault();
+        const email = $('#login-email').val().trim();
+        const password = $('#login-password').val();
+
+        if (!email) {
+          showToast('请输入邮箱地址');
+          return;
+        }
+        if (!password) {
+          showToast('请输入密码');
+          return;
+        }
+
+        // Demo 项目不判断账密，直接跳转首页
+        showToast('登录成功，正在跳转...');
+        setTimeout(function () {
+          window.location.href = 'home.html';
+        }, 800);
+      });
+
+      // ========== 注册提交 ==========
+      $('#form-register').on('submit', function (e) {
+        e.preventDefault();
+        const email = $('#register-email').val().trim();
+        const password = $('#register-password').val();
+        const confirmPassword = $('#register-confirm-password').val();
+
+        if (!email) {
+          showToast('请输入邮箱地址');
+          return;
+        }
+        if (!password) {
+          showToast('请设置密码');
+          return;
+        }
+        if (password.length < 6) {
+          showToast('密码至少需要6位');
+          return;
+        }
+        if (password !== confirmPassword) {
+          showToast('两次输入的密码不一致');
+          return;
+        }
+
+        // Demo 项目不判断账密，直接跳转首页
+        showToast('注册成功，正在跳转...');
+        setTimeout(function () {
+          window.location.href = 'home.html';
+        }, 800);
+      });
+
+      // ========== 忘记密码 ==========
+      $('#link-forgot-password').on('click', function () {
+        // 忘记密码功能 - 后续实现：
+        // 1. 弹出模态框或跳转到密码重置页面
+        // 2. 用户输入注册邮箱
+        // 3. 调用 Supabase Auth 的 resetPasswordForEmail 发送重置邮件
+        // 4. 显示"重置链接已发送至您的邮箱"提示
+        console.log('需要调用第三方接口实现密码重置功能');
+        showToast('密码重置功能开发中，请联系管理员');
+      });
+
+    });
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

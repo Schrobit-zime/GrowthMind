@@ -1,0 +1,76 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "records": "Records",
+    "analysis": "Analysis",
+    "goals": "Goals",
+    "supervise": "Supervision",
+    "gateway": "Gateway",
+    "admin": "Admin",
+    "newRecord": "New Record",
+    "signOut": "Sign Out",
+    "confirmSignOut": "Confirm Sign Out",
+    "signOutDesc": "You will need to log in again to access the application.",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "View your growth overview",
+    "totalRecords": "Total Records",
+    "currentGoals": "Current Goals",
+    "averageMood": "Average Mood"
+  },
+  "records": {
+    "title": "Records",
+    "empty": "No records yet",
+    "create": "New Record",
+    "delete": "Delete",
+    "edit": "Edit",
+    "detail": "Record Detail",
+    "confirmDelete": "Confirm Deletion",
+    "deleteWarning": "Are you sure you want to delete this record? This action cannot be undone."
+  },
+  "goals": {
+    "title": "Goals",
+    "empty": "No goals yet",
+    "create": "Create Goal",
+    "delete": "Delete Goal",
+    "edit": "Edit Goal",
+    "detail": "Goal Detail",
+    "progress": "Progress",
+    "currentValue": "Current",
+    "deadline": "Deadline",
+    "noDeadline": "No deadline",
+    "remainingDays": "{days} days left",
+    "relatedRecords": "Related Records",
+    "noRelatedRecords": "No related records",
+    "confirmDelete": "Confirm Deletion",
+    "confirmDeleteDesc": "Are you sure you want to delete \"{name}\"?"
+  },
+  "analysis": {
+    "title": "Analysis",
+    "analyze": "Analyze",
+    "loading": "Analyzing..."
+  },
+  "error": {
+    "title": "Something went wrong",
+    "subtitle": "Failed to load",
+    "retry": "Retry",
+    "backHome": "Back to Home",
+    "goBack": "Go Back",
+    "pageNotFound": "Page Not Found",
+    "notFoundDesc": "The page you are looking for does not exist or has been removed.",
+    "noGoalId": "No goal ID specified",
+    "goalNotFound": "Goal not found or has been deleted",
+    "noRecordId": "No record ID specified",
+    "backToGoals": "Back to Goals",
+    "backToRecords": "Back to Records"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  }
+}

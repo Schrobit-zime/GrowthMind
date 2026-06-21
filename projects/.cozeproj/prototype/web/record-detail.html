@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cdn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cdn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cdn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-primary:              #7C5CFF;
+      --color-primary-container:    rgba(124,92,255,0.15);
+      --color-on-primary:           #ffffff;
+      --color-accent:               #69E7FF;
+      --color-accent-container:     rgba(105,231,255,0.12);
+      --color-background:                 #070A14;
+      --color-surface-container-lowest:   rgba(255,255,255,0.03);
+      --color-surface:                    rgba(255,255,255,0.05);
+      --color-surface-container:          rgba(255,255,255,0.08);
+      --color-surface-container-high:     rgba(255,255,255,0.12);
+      --color-surface-container-highest:  rgba(255,255,255,0.16);
+      --color-on-surface:           #F7FAFF;
+      --color-on-surface-variant:   #9AA7C7;
+      --color-success:  #62FAD3;
+      --color-error:    #FF6B7A;
+      --color-warning:  #F5A623;
+      --color-outline:          rgba(255,255,255,0.12);
+      --color-outline-variant:  rgba(255,255,255,0.06);
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      --shadow-card:   0 2px 12px rgba(0,0,0,0.35);
+      --shadow-float:  0 10px 30px rgba(0,0,0,0.45);
+      --shadow-dialog: 0 25px 60px rgba(0,0,0,0.55);
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans min-h-screen">
+
+  <!-- @nav:start 导航组件 -->
+  <!-- 顶部导航栏 -->
+  <header class="sticky top-0 z-50 h-16 flex items-center justify-between px-6 border-b border-outline-variant/30 bg-background/80 backdrop-blur-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+        <i data-lucide="brain" class="w-4.5 h-4.5 text-white"></i>
+      </div>
+      <span class="font-bold text-lg tracking-tight">GrowthMind</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <select class="admin-only hidden bg-surface-container border-none rounded-lg px-3 py-1.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30">
+        <option value="">我的视角</option>
+        <option value="user_1">被监督用户：张三</option>
+        <option value="user_2">被监督用户：李四</option>
+      </select>
+      <div class="relative" id="avatar-menu-trigger">
+        <button class="w-8 h-8 rounded-full bg-primary-container text-primary font-semibold text-sm flex items-center justify-center hover:ring-2 hover:ring-primary/40 transition-all">初</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex" style="height: calc(100vh - 4rem)">
+    <!-- 侧边栏 -->
+    <aside class="w-56 shrink-0 overflow-y-auto border-r border-outline-variant/30 bg-background/60 backdrop-blur-lg">
+      <div class="p-3 space-y-0.5">
+        <a href="home.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>仪表盘
+        </a>
+        <a href="records.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium text-sm" aria-current="page">
+          <i data-lucide="file-text" class="w-4 h-4"></i>记录列表
+        </a>
+        <a href="analysis.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>智能分析
+        </a>
+        <a href="goals.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>目标管理
+        </a>
+        <div class="my-2 border-t border-outline-variant/30"></div>
+        <a href="supervise.html" class="admin-only hidden flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>监督面板
+        </a>
+      </div>
+    </aside>
+
+    <!-- @main-content:start -->
+    <main class="flex-1 min-w-0 overflow-y-auto bg-background p-6">
+
+      <!-- 页面标题栏：返回 + 标题 -->
+      <div class="flex items-center gap-4 mb-8">
+        <button id="btn-back" class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors">
+          <i data-lucide="arrow-left" class="w-4.5 h-4.5 text-on-surface-variant"></i>
+        </button>
+        <div>
+          <h1 class="text-2xl font-bold text-on-surface">记录详情</h1>
+          <p class="text-sm text-on-surface-variant mt-0.5">查看单条成长记录的完整内容</p>
+        </div>
+      </div>
+
+      <!-- 记录元信息区 -->
+      <div class="bg-surface rounded-xl shadow-card p-5 mb-6">
+        <div class="flex flex-wrap items-center gap-4">
+          <!-- 时间维度标签 -->
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-primary text-sm font-semibold">
+            <i data-lucide="calendar-check" class="w-3.5 h-3.5"></i>日报
+          </span>
+          <!-- 日期 -->
+          <span class="text-sm text-on-surface font-medium">2025-06-20</span>
+          <!-- 分隔 -->
+          <span class="w-px h-5 bg-outline-variant/50"></span>
+          <!-- 心情评分 -->
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="smile" class="w-4 h-4 text-warning"></i>
+            <span class="text-sm font-semibold text-on-surface">心情评分</span>
+            <span class="text-sm font-bold text-warning">8</span>
+            <span class="text-xs text-on-surface-variant">/10</span>
+          </div>
+          <!-- 分隔 -->
+          <span class="w-px h-5 bg-outline-variant/50"></span>
+          <!-- 关联目标 -->
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="target" class="w-4 h-4 text-success"></i>
+            <span class="text-sm text-on-surface-variant">关联目标：</span>
+            <a href="goal-detail.html?goal_id=goal_001" id="link-goal" class="text-sm font-medium text-primary hover:underline">每日学习2小时</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 维度内容卡片区域 -->
+      <div class="space-y-5">
+
+        <!-- 学习维度卡片 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center gap-2.5 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
+              <i data-lucide="book-open" class="w-4 h-4 text-primary"></i>
+            </div>
+            <h2 class="text-base font-semibold text-on-surface">学习</h2>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">学习时长</span>
+              <p class="text-sm font-semibold text-on-surface mt-1">120 分钟</p>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">学习内容</span>
+              <p class="text-sm font-semibold text-on-surface mt-1">React 性能优化</p>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">掌握度</span>
+              <div class="flex items-center gap-2 mt-1">
+                <div class="flex-1 h-2 bg-background rounded-full overflow-hidden">
+                  <div class="h-full bg-primary rounded-full" style="width: 85%;"></div>
+                </div>
+                <span class="text-sm font-semibold text-primary">85%</span>
+              </div>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">新技能</span>
+              <p class="text-sm font-semibold text-on-surface mt-1">useMemo 深度使用</p>
+            </div>
+          </div>
+          <!-- 学习笔记 -->
+          <div class="mt-4 bg-surface-container rounded-lg p-4">
+            <div class="flex items-center gap-1.5 mb-2">
+              <i data-lucide="sticky-note" class="w-3.5 h-3.5 text-on-surface-variant"></i>
+              <span class="text-xs font-medium text-on-surface-variant">笔记</span>
+            </div>
+            <p class="text-sm text-on-surface leading-relaxed">今天深入学习了 React 性能优化，重点掌握了 useMemo 和 useCallback 的使用场景与区别。通过实际项目中的列表渲染优化案例，理解了 memo 组件的配合使用方式。还阅读了 React 官方文档中关于 Profiler 的章节，对性能瓶颈定位有了更清晰的认识。</p>
+          </div>
+        </div>
+
+        <!-- 工作维度卡片 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center gap-2.5 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center">
+              <i data-lucide="briefcase" class="w-4 h-4 text-accent"></i>
+            </div>
+            <h2 class="text-base font-semibold text-on-surface">工作</h2>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">完成任务</span>
+              <p class="text-sm font-semibold text-on-surface mt-1">8 个</p>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">项目进展</span>
+              <p class="text-sm font-semibold text-on-surface mt-1">正常</p>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">效率</span>
+              <div class="flex items-center gap-2 mt-1">
+                <div class="flex-1 h-2 bg-background rounded-full overflow-hidden">
+                  <div class="h-full bg-accent rounded-full" style="width: 90%;"></div>
+                </div>
+                <span class="text-sm font-semibold text-accent">90%</span>
+              </div>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">心得</span>
+              <p class="text-sm font-semibold text-on-surface mt-1">团队协作顺畅</p>
+            </div>
+          </div>
+          <!-- 工作心得详情 -->
+          <div class="mt-4 bg-surface-container rounded-lg p-4">
+            <div class="flex items-center gap-1.5 mb-2">
+              <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-on-surface-variant"></i>
+              <span class="text-xs font-medium text-on-surface-variant">心得详情</span>
+            </div>
+            <p class="text-sm text-on-surface leading-relaxed">今天完成了前端模块重构的主要部分，与后端联调顺利。团队站会中分享了性能优化的经验，得到了大家的认可。下午集中处理了 3 个遗留 Bug，代码质量明显提升。感觉团队协作越来越默契，项目节奏把控得很好。</p>
+          </div>
+        </div>
+
+        <!-- 身体维度卡片 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center gap-2.5 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-success/15 flex items-center justify-center">
+              <i data-lucide="heart-pulse" class="w-4 h-4 text-success"></i>
+            </div>
+            <h2 class="text-base font-semibold text-on-surface">身体</h2>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">体重</span>
+              <p class="text-sm font-semibold text-on-surface mt-1">70 kg</p>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">心率</span>
+              <p class="text-sm font-semibold text-on-surface mt-1">72 bpm</p>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">睡眠质量</span>
+              <div class="flex items-center gap-2 mt-1">
+                <div class="flex-1 h-2 bg-background rounded-full overflow-hidden">
+                  <div class="h-full bg-success rounded-full" style="width: 80%;"></div>
+                </div>
+                <span class="text-sm font-semibold text-success">8</span>
+              </div>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">精力</span>
+              <div class="flex items-center gap-2 mt-1">
+                <div class="flex-1 h-2 bg-background rounded-full overflow-hidden">
+                  <div class="h-full bg-warning rounded-full" style="width: 70%;"></div>
+                </div>
+                <span class="text-sm font-semibold text-warning">7</span>
+              </div>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">症状</span>
+              <p class="text-sm font-semibold text-on-surface mt-1">无</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 心情维度卡片 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center gap-2.5 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-warning/15 flex items-center justify-center">
+              <i data-lucide="sun" class="w-4 h-4 text-warning"></i>
+            </div>
+            <h2 class="text-base font-semibold text-on-surface">心情</h2>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">评分</span>
+              <div class="flex items-baseline gap-1 mt-1">
+                <span class="text-lg font-bold text-warning">8</span>
+                <span class="text-xs text-on-surface-variant">/10</span>
+              </div>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">关键词</span>
+              <div class="flex flex-wrap gap-1.5 mt-1.5">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-primary-container text-primary">充实</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-success/15 text-success">平静</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-accent-container text-accent">有成就感</span>
+              </div>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">压力</span>
+              <div class="flex items-center gap-2 mt-1">
+                <div class="flex-1 h-2 bg-background rounded-full overflow-hidden">
+                  <div class="h-full bg-success rounded-full" style="width: 30%;"></div>
+                </div>
+                <span class="text-sm font-semibold text-success">3</span>
+              </div>
+            </div>
+            <div class="bg-surface-container rounded-lg p-3.5">
+              <span class="text-xs text-on-surface-variant">感恩日记</span>
+              <p class="text-sm font-medium text-on-surface mt-1 leading-relaxed">感谢同事帮忙 Code Review，学到了很多新技巧</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 底部操作按钮 -->
+      <div class="flex items-center gap-3 mt-8 pb-4">
+        <button id="btn-edit" class="bg-primary text-on-primary px-5 py-2.5 rounded-lg text-sm font-medium
+                       hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center gap-2">
+          <i data-lucide="pencil" class="w-4 h-4"></i>编辑记录
+        </button>
+        <button id="btn-delete" class="bg-surface-container text-on-surface px-5 py-2.5 rounded-lg text-sm font-medium
+                       hover:bg-surface-container-high hover:text-error active:scale-[0.98] transition-all inline-flex items-center gap-2">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>删除记录
+        </button>
+      </div>
+
+    </main>
+    <!-- @main-content:end -->
+  </div>
+
+  <!-- 删除确认弹窗 -->
+  <div id="modal-delete" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-surface rounded-xl shadow-dialog max-w-md w-full p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-full bg-error/15 flex items-center justify-center shrink-0">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-error"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-on-surface">确认删除记录</h3>
+          <p class="text-xs text-on-surface-variant mt-0.5">此操作不可撤销</p>
+        </div>
+      </div>
+      <div class="bg-surface-container rounded-lg p-4 mb-5">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-primary-container text-primary">日报</span>
+          <span class="text-sm font-medium text-on-surface">2025-06-20</span>
+        </div>
+        <p class="text-sm text-on-surface-variant leading-relaxed">删除该记录将同时移除其在目标 <span class="font-medium text-on-surface">"每日学习2小时"</span> 进度中的贡献值。关联的分析数据也将同步清除，此操作不可撤销。</p>
+      </div>
+      <div class="flex gap-3 justify-end">
+        <button id="btn-cancel-delete" class="bg-surface-container text-on-surface px-4 py-2 rounded-lg text-sm font-medium
+                       hover:bg-surface-container-high active:scale-[0.98] transition-all">取消</button>
+        <button id="btn-confirm-delete" class="bg-error text-white px-4 py-2 rounded-lg text-sm font-medium
+                       hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center gap-2">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>确认删除
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 头像下拉菜单 -->
+  <div id="avatar-menu" class="hidden absolute right-6 top-14 z-50 w-48 bg-surface-container-highest backdrop-blur-xl border border-outline-variant/30 rounded-xl shadow-dialog p-1.5">
+    <a href="gateway.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="cpu" class="w-4 h-4"></i>模型网关
+    </a>
+    <a href="login.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="log-out" class="w-4 h-4"></i>退出登录
+    </a>
+  </div>
+
+  <script>
+    $(function() {
+      // 头像菜单切换
+      $('#avatar-menu-trigger').on('click', function(e) {
+        e.stopPropagation();
+        $('#avatar-menu').toggleClass('hidden');
+      });
+      $(document).on('click', function() {
+        $('#avatar-menu').addClass('hidden');
+      });
+      // 管理员功能可见性
+      $('.admin-only').removeClass('hidden');
+
+      // 返回按钮 - 返回记录列表页
+      $('#btn-back').on('click', function() {
+        window.location.href = 'records.html';
+      });
+
+      // 编辑按钮 - 跳转编辑页并传递记录ID
+      $('#btn-edit').on('click', function() {
+        window.location.href = 'record-form.html?record_id=rec_001';
+      });
+
+      // 删除按钮 - 弹出确认弹窗
+      $('#btn-delete').on('click', function() {
+        $('#modal-delete').removeClass('hidden');
+      });
+
+      // 取消删除
+      $('#btn-cancel-delete').on('click', function() {
+        $('#modal-delete').addClass('hidden');
+      });
+
+      // 点击弹窗遮罩关闭
+      $('#modal-delete').on('click', function(e) {
+        if (e.target === this) {
+          $('#modal-delete').addClass('hidden');
+        }
+      });
+
+      // 确认删除 - 执行删除后跳转记录列表
+      // 后续应实现：
+      // 1. 发送 DELETE 请求到 /api/v1/records/rec_001
+      // 2. 删除成功后显示 toast 提示"记录已删除"
+      // 3. 延迟 500ms 后跳转到 records.html
+      // 4. 删除失败则显示错误提示并保持弹窗打开
+      $('#btn-confirm-delete').on('click', function() {
+        console.log('确认删除记录 rec_001，需调用 DELETE /api/v1/records/rec_001');
+        window.location.href = 'records.html';
+      });
+
+    });
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

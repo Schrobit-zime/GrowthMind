@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 === */
+      --color-primary:              #7C5CFF;
+      --color-primary-container:    rgba(124,92,255,0.15);
+      --color-on-primary:           #ffffff;
+      /* === 强调色 === */
+      --color-accent:               #69E7FF;
+      --color-accent-container:     rgba(105,231,255,0.12);
+      /* === 背景 / 表面（毛玻璃层级） === */
+      --color-background:                 #070A14;
+      --color-surface-container-lowest:   rgba(255,255,255,0.03);
+      --color-surface:                    rgba(255,255,255,0.05);
+      --color-surface-container:          rgba(255,255,255,0.08);
+      --color-surface-container-high:     rgba(255,255,255,0.12);
+      --color-surface-container-highest:  rgba(255,255,255,0.16);
+      /* === 文字 === */
+      --color-on-surface:           #F7FAFF;
+      --color-on-surface-variant:   #9AA7C7;
+      /* === 功能色 === */
+      --color-success:  #62FAD3;
+      --color-error:    #FF6B7A;
+      --color-warning:  #F5A623;
+      /* === 边框 === */
+      --color-outline:          rgba(255,255,255,0.12);
+      --color-outline-variant:  rgba(255,255,255,0.06);
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 2px 12px rgba(0,0,0,0.35);
+      --shadow-float:  0 10px 30px rgba(0,0,0,0.45);
+      --shadow-dialog: 0 25px 60px rgba(0,0,0,0.55);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <!-- 图片兜底 -->
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans min-h-screen">
+
+  <!-- @nav:start 导航组件 -->
+  <!-- 顶部导航栏 -->
+  <header class="sticky top-0 z-50 h-16 flex items-center justify-between px-6 border-b border-outline-variant/30 bg-background/80 backdrop-blur-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+        <i data-lucide="brain" class="w-4.5 h-4.5 text-white"></i>
+      </div>
+      <span class="font-bold text-lg tracking-tight">GrowthMind</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- 管理员视角切换器（仅管理员可见，普通用户隐藏） -->
+      <select class="admin-only hidden bg-surface-container border-none rounded-lg px-3 py-1.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30">
+        <option value="">我的视角</option>
+        <option value="user_1">被监督用户：张三</option>
+        <option value="user_2">被监督用户：李四</option>
+      </select>
+      <!-- 用户头像 -->
+      <div class="relative" id="avatar-menu-trigger">
+        <button class="w-8 h-8 rounded-full bg-primary-container text-primary font-semibold text-sm flex items-center justify-center hover:ring-2 hover:ring-primary/40 transition-all">初</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex" style="height: calc(100vh - 4rem)">
+    <!-- 侧边栏 -->
+    <aside class="w-56 shrink-0 overflow-y-auto border-r border-outline-variant/30 bg-background/60 backdrop-blur-lg">
+      <div class="p-3 space-y-0.5">
+        <a href="home.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>仪表盘
+        </a>
+        <a href="records.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>记录列表
+        </a>
+        <a href="analysis.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>智能分析
+        </a>
+        <a href="goals.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>目标管理
+        </a>
+        <div class="my-2 border-t border-outline-variant/30"></div>
+        <a href="supervise.html" class="admin-only hidden flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>监督面板
+        </a>
+      </div>
+    </aside>
+
+    <!-- @main-content:start -->
+    <main class="flex-1 min-w-0 overflow-y-auto bg-background p-6">
+
+      <!-- 页面标题 -->
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-2xl font-bold text-on-surface">模型网关管理台</h1>
+          <p class="text-sm text-on-surface-variant mt-1">统一模型接入层 · 用量统计与成本分析</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- 时间范围筛选器 -->
+          <select id="filter-time-range" class="bg-surface-container border-none rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 transition-colors">
+            <option value="7">近 7 天</option>
+            <option value="30" selected>近 30 天</option>
+            <option value="90">近 90 天</option>
+            <option value="365">近一年</option>
+          </select>
+          <!-- 厂商筛选器 -->
+          <select id="filter-provider" class="bg-surface-container border-none rounded-lg px-3 py-2 text-sm text-on-surface focus:ring-2 focus:ring-primary/30 transition-colors">
+            <option value="all" selected>全部厂商</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="openai">OpenAI</option>
+            <option value="claude">Claude</option>
+            <option value="zhipu">智谱</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 概览卡片区 -->
+      <div class="grid grid-cols-3 gap-5 mb-8">
+        <!-- 卡片1：总调用次数 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm text-on-surface-variant">总调用次数</span>
+            <div class="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center">
+              <i data-lucide="activity" class="w-4.5 h-4.5 text-primary"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-on-surface">12,847</div>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="inline-flex items-center gap-0.5 text-xs font-medium text-success">
+              <i data-lucide="trending-up" class="w-3 h-3"></i>+12.5%
+            </span>
+            <span class="text-xs text-on-surface-variant">较上期</span>
+          </div>
+        </div>
+
+        <!-- 卡片2：总 Token 消耗 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm text-on-surface-variant">总 Token 消耗</span>
+            <div class="w-9 h-9 rounded-lg bg-accent-container flex items-center justify-center">
+              <i data-lucide="zap" class="w-4.5 h-4.5 text-accent"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-on-surface">2.3M</div>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="inline-flex items-center gap-0.5 text-xs font-medium text-success">
+              <i data-lucide="trending-up" class="w-3 h-3"></i>+8.3%
+            </span>
+            <span class="text-xs text-on-surface-variant">较上期</span>
+          </div>
+        </div>
+
+        <!-- 卡片3：总成本 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm text-on-surface-variant">总成本</span>
+            <div class="w-9 h-9 rounded-lg bg-success/15 flex items-center justify-center">
+              <i data-lucide="dollar-sign" class="w-4.5 h-4.5 text-success"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-on-surface">$18.42</div>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="inline-flex items-center gap-0.5 text-xs font-medium text-error">
+              <i data-lucide="trending-down" class="w-3 h-3"></i>-2.1%
+            </span>
+            <span class="text-xs text-on-surface-variant">较上期</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 图表区：饼图 + 折线图 -->
+      <div class="grid grid-cols-2 gap-5 mb-8">
+        <!-- 按厂商用量饼图 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <h2 class="text-base font-semibold text-on-surface mb-4">按厂商用量分布</h2>
+          <div class="flex items-center gap-6">
+            <!-- SVG 饼图 -->
+            <svg id="pie-chart" viewBox="0 0 200 200" width="180" height="180" class="shrink-0">
+              <!-- DeepSeek 45%: 0° → 162° -->
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#7C5CFF" stroke-width="32"
+                      stroke-dasharray="226.19 276.46" stroke-dashoffset="0"
+                      transform="rotate(-90 100 100)" opacity="0.9"/>
+              <!-- OpenAI 30%: 162° → 270° -->
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#69E7FF" stroke-width="32"
+                      stroke-dasharray="150.80 351.85" stroke-dashoffset="-226.19"
+                      transform="rotate(-90 100 100)" opacity="0.9"/>
+              <!-- Claude 15%: 270° → 324° -->
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#F5A623" stroke-width="32"
+                      stroke-dasharray="75.40 427.25" stroke-dashoffset="-376.99"
+                      transform="rotate(-90 100 100)" opacity="0.9"/>
+              <!-- 智谱 10%: 324° → 360° -->
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#62FAD3" stroke-width="32"
+                      stroke-dasharray="50.27 452.38" stroke-dashoffset="-452.39"
+                      transform="rotate(-90 100 100)" opacity="0.9"/>
+              <!-- 中心文字 -->
+              <text x="100" y="96" text-anchor="middle" class="text-xs" fill="#F7FAFF" font-size="14" font-weight="600">总计</text>
+              <text x="100" y="114" text-anchor="middle" fill="#9AA7C7" font-size="12">12,847 次</text>
+            </svg>
+            <!-- 图例 -->
+            <div class="space-y-3 flex-1">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-sm bg-primary"></span>
+                  <span class="text-sm text-on-surface">DeepSeek</span>
+                </div>
+                <span class="text-sm font-semibold text-on-surface">45%</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-sm bg-accent"></span>
+                  <span class="text-sm text-on-surface">OpenAI</span>
+                </div>
+                <span class="text-sm font-semibold text-on-surface">30%</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-sm bg-warning"></span>
+                  <span class="text-sm text-on-surface">Claude</span>
+                </div>
+                <span class="text-sm font-semibold text-on-surface">15%</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-sm bg-success"></span>
+                  <span class="text-sm text-on-surface">智谱</span>
+                </div>
+                <span class="text-sm font-semibold text-on-surface">10%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 按时间趋势折线图 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <h2 class="text-base font-semibold text-on-surface mb-4">近 30 天调用趋势</h2>
+          <!-- SVG 折线图 -->
+          <svg id="line-chart" viewBox="0 0 440 200" width="100%" height="180" preserveAspectRatio="xMidYMid meet">
+            <!-- 网格线 -->
+            <line x1="50" y1="20" x2="430" y2="20" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="50" y1="55" x2="430" y2="55" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="50" y1="90" x2="430" y2="90" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="50" y1="125" x2="430" y2="125" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <line x1="50" y1="160" x2="430" y2="160" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <!-- Y轴标签 -->
+            <text x="44" y="24" text-anchor="end" fill="#9AA7C7" font-size="10">600</text>
+            <text x="44" y="59" text-anchor="end" fill="#9AA7C7" font-size="10">450</text>
+            <text x="44" y="94" text-anchor="end" fill="#9AA7C7" font-size="10">300</text>
+            <text x="44" y="129" text-anchor="end" fill="#9AA7C7" font-size="10">150</text>
+            <text x="44" y="164" text-anchor="end" fill="#9AA7C7" font-size="10">0</text>
+            <!-- 折线：近30天每日调用量（模拟数据） -->
+            <polyline fill="none" stroke="#7C5CFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                      points="58,128 71,115 84,98 97,82 110,90 123,105 136,88 149,72 162,58 175,68 188,85 201,95 214,78 227,62 240,50 253,60 266,75 279,90 292,72 305,55 318,42 331,52 344,68 357,80 370,65 383,48 396,35 409,45 422,55 430,48"/>
+            <!-- 渐变填充区域 -->
+            <linearGradient id="line-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#7C5CFF" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#7C5CFF" stop-opacity="0.0"/>
+            </linearGradient>
+            <polygon fill="url(#line-fill)"
+                     points="58,128 71,115 84,98 97,82 110,90 123,105 136,88 149,72 162,58 175,68 188,85 201,95 214,78 227,62 240,50 253,60 266,75 279,90 292,72 305,55 318,42 331,52 344,68 357,80 370,65 383,48 396,35 409,45 422,55 430,48 430,160 58,160"/>
+            <!-- 数据点 -->
+            <circle cx="58" cy="128" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="71" cy="115" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="84" cy="98" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="97" cy="82" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="110" cy="90" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="123" cy="105" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="136" cy="88" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="149" cy="72" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="162" cy="58" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="175" cy="68" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="188" cy="85" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="201" cy="95" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="214" cy="78" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="227" cy="62" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="240" cy="50" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="253" cy="60" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="266" cy="75" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="279" cy="90" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="292" cy="72" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="305" cy="55" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="318" cy="42" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="331" cy="52" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="344" cy="68" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="357" cy="80" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="370" cy="65" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="383" cy="48" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="396" cy="35" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="409" cy="45" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="422" cy="55" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <circle cx="430" cy="48" r="3.5" fill="#7C5CFF" stroke="#070A14" stroke-width="1.5"/>
+            <!-- X轴标签 -->
+            <text x="58" y="178" text-anchor="middle" fill="#9AA7C7" font-size="9">12/01</text>
+            <text x="136" y="178" text-anchor="middle" fill="#9AA7C7" font-size="9">12/08</text>
+            <text x="214" y="178" text-anchor="middle" fill="#9AA7C7" font-size="9">12/15</text>
+            <text x="292" y="178" text-anchor="middle" fill="#9AA7C7" font-size="9">12/22</text>
+            <text x="370" y="178" text-anchor="middle" fill="#9AA7C7" font-size="9">12/29</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 调用明细列表 -->
+      <div class="bg-surface rounded-xl shadow-card overflow-hidden">
+        <div class="px-5 py-4 border-b border-outline-variant/20">
+          <h2 class="text-base font-semibold text-on-surface">调用明细</h2>
+        </div>
+        <!-- 表头 -->
+        <div class="grid grid-cols-7 px-5 py-3 bg-surface-container text-xs font-semibold text-on-surface-variant uppercase tracking-wide">
+          <span>时间</span>
+          <span>厂商</span>
+          <span>模型</span>
+          <span>Token 消耗</span>
+          <span>预估成本</span>
+          <span>调用来源</span>
+          <span>操作</span>
+        </div>
+        <!-- 列表行 -->
+        <div class="divide-y divide-outline-variant/20" id="detail-table-body">
+
+          <!-- 列表-调用明细1 -->
+          <div class="grid grid-cols-7 px-5 py-3.5 hover:bg-surface-container/50 transition-colors items-center detail-row" data-id="1">
+            <span class="text-sm text-on-surface">2024-12-30 14:32:10</span>
+            <span class="inline-flex items-center gap-1.5 text-sm text-on-surface">
+              <span class="w-2 h-2 rounded-full bg-primary"></span>DeepSeek
+            </span>
+            <span class="text-sm text-on-surface-variant">deepseek-chat</span>
+            <span class="text-sm font-medium text-on-surface">12,450</span>
+            <span class="text-sm font-medium text-on-surface">$0.018</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-primary-container text-primary w-fit">智能分析</span>
+            <button class="text-primary text-sm font-medium hover:underline w-fit btn-expand-detail">展开</button>
+          </div>
+
+          <!-- 列表-调用明细2 -->
+          <div class="grid grid-cols-7 px-5 py-3.5 hover:bg-surface-container/50 transition-colors items-center detail-row" data-id="2">
+            <span class="text-sm text-on-surface">2024-12-30 10:15:42</span>
+            <span class="inline-flex items-center gap-1.5 text-sm text-on-surface">
+              <span class="w-2 h-2 rounded-full bg-accent"></span>OpenAI
+            </span>
+            <span class="text-sm text-on-surface-variant">gpt-4o-mini</span>
+            <span class="text-sm font-medium text-on-surface">8,920</span>
+            <span class="text-sm font-medium text-on-surface">$0.013</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-warning/15 text-warning w-fit">监督报告</span>
+            <button class="text-primary text-sm font-medium hover:underline w-fit btn-expand-detail">展开</button>
+          </div>
+
+          <!-- 列表-调用明细3 -->
+          <div class="grid grid-cols-7 px-5 py-3.5 hover:bg-surface-container/50 transition-colors items-center detail-row" data-id="3">
+            <span class="text-sm text-on-surface">2024-12-29 18:45:03</span>
+            <span class="inline-flex items-center gap-1.5 text-sm text-on-surface">
+              <span class="w-2 h-2 rounded-full bg-primary"></span>DeepSeek
+            </span>
+            <span class="text-sm text-on-surface-variant">deepseek-chat</span>
+            <span class="text-sm font-medium text-on-surface">15,200</span>
+            <span class="text-sm font-medium text-on-surface">$0.023</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-primary-container text-primary w-fit">智能分析</span>
+            <button class="text-primary text-sm font-medium hover:underline w-fit btn-expand-detail">展开</button>
+          </div>
+
+          <!-- 列表-调用明细4 -->
+          <div class="grid grid-cols-7 px-5 py-3.5 hover:bg-surface-container/50 transition-colors items-center detail-row" data-id="4">
+            <span class="text-sm text-on-surface">2024-12-29 09:22:18</span>
+            <span class="inline-flex items-center gap-1.5 text-sm text-on-surface">
+              <span class="w-2 h-2 rounded-full bg-warning"></span>Claude
+            </span>
+            <span class="text-sm text-on-surface-variant">claude-3-haiku</span>
+            <span class="text-sm font-medium text-on-surface">6,780</span>
+            <span class="text-sm font-medium text-on-surface">$0.010</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-warning/15 text-warning w-fit">监督报告</span>
+            <button class="text-primary text-sm font-medium hover:underline w-fit btn-expand-detail">展开</button>
+          </div>
+
+          <!-- 列表-调用明细5 -->
+          <div class="grid grid-cols-7 px-5 py-3.5 hover:bg-surface-container/50 transition-colors items-center detail-row" data-id="5">
+            <span class="text-sm text-on-surface">2024-12-28 16:08:55</span>
+            <span class="inline-flex items-center gap-1.5 text-sm text-on-surface">
+              <span class="w-2 h-2 rounded-full bg-success"></span>智谱
+            </span>
+            <span class="text-sm text-on-surface-variant">glm-4-flash</span>
+            <span class="text-sm font-medium text-on-surface">4,350</span>
+            <span class="text-sm font-medium text-on-surface">$0.004</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-primary-container text-primary w-fit">智能分析</span>
+            <button class="text-primary text-sm font-medium hover:underline w-fit btn-expand-detail">展开</button>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+    <!-- @main-content:end -->
+  </div>
+
+  <!-- 头像下拉菜单 -->
+  <div id="avatar-menu" class="hidden absolute right-6 top-14 z-50 w-48 bg-surface-container-highest backdrop-blur-xl border border-outline-variant/30 rounded-xl shadow-dialog p-1.5">
+    <a href="gateway.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-primary bg-primary/10 font-medium transition-colors" aria-current="page">
+      <i data-lucide="cpu" class="w-4 h-4"></i>模型网关
+    </a>
+    <a href="login.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="log-out" class="w-4 h-4"></i>退出登录
+    </a>
+  </div>
+
+  <script>
+    $(function() {
+      // 头像菜单切换
+      $('#avatar-menu-trigger').on('click', function(e) {
+        e.stopPropagation();
+        $('#avatar-menu').toggleClass('hidden');
+      });
+      $(document).on('click', function() {
+        $('#avatar-menu').addClass('hidden');
+      });
+      // 管理员功能可见性（原型阶段默认显示管理员视图）
+      $('.admin-only').removeClass('hidden');
+    });
+  </script>
+
+  <script>
+    $(function() {
+
+      // 时间范围筛选 - 切换后应重新请求后端统计数据并刷新概览卡片、图表和明细列表
+      $('#filter-time-range').on('change', function() {
+        var range = $(this).val();
+        console.log('时间范围筛选切换为:', range, '天。后续应实现：根据选择的时间范围重新请求 /api/v1/gateway/stats 接口，刷新概览卡片数值、饼图数据、折线图数据和调用明细列表。');
+      });
+
+      // 厂商筛选 - 切换后应按厂商过滤明细列表和图表数据
+      $('#filter-provider').on('change', function() {
+        var provider = $(this).val();
+        console.log('厂商筛选切换为:', provider, '。后续应实现：根据选择的厂商过滤调用明细列表，同时更新饼图高亮和折线图数据。选择"全部厂商"时恢复完整视图。');
+        // 原型阶段：简单 show/hide 过滤明细行
+        if (provider === 'all') {
+          $('#detail-table-body .detail-row').show();
+        } else {
+          $('#detail-table-body .detail-row').hide();
+          // 根据厂商名称匹配行（简化处理：检查行内文本）
+          $('#detail-table-body .detail-row').each(function() {
+            var text = $(this).text().toLowerCase();
+            if (text.indexOf(provider) !== -1) {
+              $(this).show();
+            }
+          });
+        }
+      });
+
+      // 展开调用详情 - 点击后应展开该行的详细调用信息
+      // 后续应实现：
+      // 1. 在点击行下方插入一个展开面板，显示该次调用的完整请求/响应摘要
+      // 2. 面板内容包括：请求时间戳、模型参数（temperature/top_p/max_tokens）、
+      //    prompt tokens / completion tokens 拆分、实际耗时、是否命中缓存
+      // 3. 再次点击"收起"按钮或点击其他行的展开按钮时关闭当前面板
+      // 4. 同一时间只允许展开一行
+      $('#detail-table-body').on('click', '.btn-expand-detail', function() {
+        var row = $(this).closest('.detail-row');
+        var id = row.data('id');
+        console.log('展开调用详情, id:', id, '。后续应实现：展开该行的详细调用信息面板。');
+      });
+
+    });
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

@@ -1,0 +1,76 @@
+{
+  "nav": {
+    "dashboard": "仪表盘",
+    "records": "记录列表",
+    "analysis": "智能分析",
+    "goals": "目标管理",
+    "supervise": "监督面板",
+    "gateway": "模型网关",
+    "admin": "管理员",
+    "newRecord": "新增记录",
+    "signOut": "退出登录",
+    "confirmSignOut": "确认退出",
+    "signOutDesc": "退出登录后需要重新登录才能访问应用",
+    "cancel": "取消",
+    "confirm": "确认退出"
+  },
+  "dashboard": {
+    "title": "仪表盘",
+    "subtitle": "查看你的成长概览",
+    "totalRecords": "总记录数",
+    "currentGoals": "当前目标",
+    "averageMood": "平均心情"
+  },
+  "records": {
+    "title": "记录列表",
+    "empty": "暂无记录",
+    "create": "新增记录",
+    "delete": "删除",
+    "edit": "编辑",
+    "detail": "记录详情",
+    "confirmDelete": "确认删除",
+    "deleteWarning": "确定要删除这条记录吗？此操作不可撤销。"
+  },
+  "goals": {
+    "title": "目标管理",
+    "empty": "暂无目标",
+    "create": "创建目标",
+    "delete": "删除目标",
+    "edit": "编辑目标",
+    "detail": "目标详情",
+    "progress": "完成度",
+    "currentValue": "当前进度",
+    "deadline": "截止日期",
+    "noDeadline": "无截止日期",
+    "remainingDays": "剩{days}天",
+    "relatedRecords": "关联记录",
+    "noRelatedRecords": "暂无关联记录",
+    "confirmDelete": "确认删除",
+    "confirmDeleteDesc": "确定要删除目标「{name}」吗？"
+  },
+  "analysis": {
+    "title": "智能分析",
+    "analyze": "开始分析",
+    "loading": "分析中..."
+  },
+  "error": {
+    "title": "出了点问题",
+    "subtitle": "加载失败",
+    "retry": "重试",
+    "backHome": "返回首页",
+    "goBack": "后退",
+    "pageNotFound": "页面不存在",
+    "notFoundDesc": "你访问的页面不存在或已被移除。",
+    "noGoalId": "未指定目标 ID",
+    "goalNotFound": "目标不存在或已被删除",
+    "noRecordId": "未指定记录 ID",
+    "backToGoals": "返回目标列表",
+    "backToRecords": "返回记录列表"
+  },
+  "common": {
+    "loading": "加载中...",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认"
+  }
+}

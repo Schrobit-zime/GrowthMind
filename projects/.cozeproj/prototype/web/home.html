@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 === */
+      --color-primary:              #7C5CFF;
+      --color-primary-container:    rgba(124,92,255,0.15);
+      --color-on-primary:           #ffffff;
+      /* === 强调色 === */
+      --color-accent:               #69E7FF;
+      --color-accent-container:     rgba(105,231,255,0.12);
+      /* === 背景 / 表面（毛玻璃层级） === */
+      --color-background:                 #070A14;
+      --color-surface-container-lowest:   rgba(255,255,255,0.03);
+      --color-surface:                    rgba(255,255,255,0.05);
+      --color-surface-container:          rgba(255,255,255,0.08);
+      --color-surface-container-high:     rgba(255,255,255,0.12);
+      --color-surface-container-highest:  rgba(255,255,255,0.16);
+      /* === 文字 === */
+      --color-on-surface:           #F7FAFF;
+      --color-on-surface-variant:   #9AA7C7;
+      /* === 功能色 === */
+      --color-success:  #62FAD3;
+      --color-error:    #FF6B7A;
+      --color-warning:  #F5A623;
+      /* === 边框 === */
+      --color-outline:          rgba(255,255,255,0.12);
+      --color-outline-variant:  rgba(255,255,255,0.06);
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 2px 12px rgba(0,0,0,0.35);
+      --shadow-float:  0 10px 30px rgba(0,0,0,0.45);
+      --shadow-dialog: 0 25px 60px rgba(0,0,0,0.55);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <!-- 图片兜底 -->
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans min-h-screen">
+
+  <!-- @nav:start 导航组件 -->
+  <!-- 顶部导航栏 -->
+  <header class="sticky top-0 z-50 h-16 flex items-center justify-between px-6 border-b border-outline-variant/30 bg-background/80 backdrop-blur-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+        <i data-lucide="brain" class="w-4.5 h-4.5 text-white"></i>
+      </div>
+      <span class="font-bold text-lg tracking-tight">GrowthMind</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- 管理员视角切换器（仅管理员可见，普通用户隐藏） -->
+      <select id="admin-view-switcher" class="admin-only hidden bg-surface-container border-none rounded-lg px-3 py-1.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30">
+        <option value="">我的视角</option>
+        <option value="user_1">被监督用户：张三</option>
+        <option value="user_2">被监督用户：李四</option>
+      </select>
+      <!-- 用户头像 -->
+      <div class="relative" id="avatar-menu-trigger">
+        <button class="w-8 h-8 rounded-full bg-primary-container text-primary font-semibold text-sm flex items-center justify-center hover:ring-2 hover:ring-primary/40 transition-all">初</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex" style="height: calc(100vh - 4rem)">
+    <!-- 侧边栏 -->
+    <aside class="w-56 shrink-0 overflow-y-auto border-r border-outline-variant/30 bg-background/60 backdrop-blur-lg">
+      <div class="p-3 space-y-0.5">
+        <a href="home.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium text-sm" aria-current="page">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>仪表盘
+        </a>
+        <a href="records.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>记录列表
+        </a>
+        <a href="analysis.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>智能分析
+        </a>
+        <a href="goals.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>目标管理
+        </a>
+        <div class="my-2 border-t border-outline-variant/30"></div>
+        <a href="supervise.html" class="admin-only hidden flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>监督面板
+        </a>
+      </div>
+    </aside>
+
+    <!-- @main-content:start -->
+    <main class="flex-1 min-w-0 overflow-y-auto bg-background p-6">
+
+      <!-- 欢迎语区域 -->
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-on-surface" id="greeting-title">下午好，小初 👋</h1>
+        <p class="text-sm text-on-surface-variant mt-1" id="greeting-subtitle">今天是 2025年3月17日 周一 · 继续加油，你今天已经完成了 3 项记录</p>
+      </div>
+
+      <!-- 今日概览卡片（4个） -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="overview-cards">
+        <!-- 卡片-学习 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-high/50 transition-colors cursor-pointer" id="card-learning" data-dimension="learning">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
+              <i data-lucide="book-open" class="w-5 h-5 text-primary"></i>
+            </div>
+            <span class="inline-flex items-center gap-1 text-xs font-medium text-success">
+              <i data-lucide="trending-up" class="w-3 h-3"></i>+12%
+            </span>
+          </div>
+          <div class="text-2xl font-bold text-on-surface mb-1">2.5<span class="text-sm font-normal text-on-surface-variant ml-1">小时</span></div>
+          <div class="text-xs text-on-surface-variant">今日学习时长</div>
+          <div class="mt-3 flex items-center gap-2 text-xs text-on-surface-variant">
+            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-success"></span>掌握度 78%</span>
+            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span>新技能 +1</span>
+          </div>
+        </div>
+
+        <!-- 卡片-工作 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-high/50 transition-colors cursor-pointer" id="card-work" data-dimension="work">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-accent/15 flex items-center justify-center">
+              <i data-lucide="briefcase" class="w-5 h-5 text-accent"></i>
+            </div>
+            <span class="inline-flex items-center gap-1 text-xs font-medium text-success">
+              <i data-lucide="trending-up" class="w-3 h-3"></i>+8%
+            </span>
+          </div>
+          <div class="text-2xl font-bold text-on-surface mb-1">8<span class="text-sm font-normal text-on-surface-variant ml-1">项</span></div>
+          <div class="text-xs text-on-surface-variant">今日完成任务</div>
+          <div class="mt-3 flex items-center gap-2 text-xs text-on-surface-variant">
+            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-success"></span>效率 85%</span>
+            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span>项目推进中</span>
+          </div>
+        </div>
+
+        <!-- 卡片-身体 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-high/50 transition-colors cursor-pointer" id="card-health" data-dimension="health">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-success/15 flex items-center justify-center">
+              <i data-lucide="heart" class="w-5 h-5 text-success"></i>
+            </div>
+            <span class="inline-flex items-center gap-1 text-xs font-medium text-warning">
+              <i data-lucide="minus" class="w-3 h-3"></i>持平
+            </span>
+          </div>
+          <div class="text-2xl font-bold text-on-surface mb-1">7.5<span class="text-sm font-normal text-on-surface-variant ml-1">小时</span></div>
+          <div class="text-xs text-on-surface-variant">今日睡眠时长</div>
+          <div class="mt-3 flex items-center gap-2 text-xs text-on-surface-variant">
+            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-success"></span>精力 72%</span>
+            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span>心率 68bpm</span>
+          </div>
+        </div>
+
+        <!-- 卡片-心情 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-high/50 transition-colors cursor-pointer" id="card-mood" data-dimension="mood">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-warning/15 flex items-center justify-center">
+              <i data-lucide="smile" class="w-5 h-5 text-warning"></i>
+            </div>
+            <span class="inline-flex items-center gap-1 text-xs font-medium text-success">
+              <i data-lucide="trending-up" class="w-3 h-3"></i>+5%
+            </span>
+          </div>
+          <div class="text-2xl font-bold text-on-surface mb-1">8.2<span class="text-sm font-normal text-on-surface-variant ml-1">分</span></div>
+          <div class="text-xs text-on-surface-variant">今日心情评分</div>
+          <div class="mt-3 flex items-center gap-2 text-xs text-on-surface-variant">
+            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-success"></span>压力 低</span>
+            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span>关键词: 充实</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 趋势折线图区域 -->
+      <div class="bg-surface rounded-xl shadow-card p-6 mb-8" id="trend-chart-section">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-base font-semibold text-on-surface">近7天心情趋势</h2>
+            <p class="text-xs text-on-surface-variant mt-0.5">评分范围 1-10，本周均值 7.6</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="px-2.5 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary" id="chart-tab-week">周</button>
+            <button class="px-2.5 py-1 rounded-md text-xs font-medium text-on-surface-variant hover:bg-surface-container transition-colors" id="chart-tab-month">月</button>
+          </div>
+        </div>
+        <!-- SVG 折线图 -->
+        <div class="w-full overflow-x-auto">
+          <svg viewBox="0 0 600 220" class="w-full" style="min-width: 500px;" id="mood-trend-chart">
+            <!-- 网格线 -->
+            <line x1="60" y1="20" x2="580" y2="20" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="60" y1="60" x2="580" y2="60" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="60" y1="100" x2="580" y2="100" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="60" y1="140" x2="580" y2="140" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="60" y1="180" x2="580" y2="180" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <!-- Y轴标签 -->
+            <text x="50" y="24" text-anchor="end" class="text-[10px]" fill="#9AA7C7">10</text>
+            <text x="50" y="64" text-anchor="end" class="text-[10px]" fill="#9AA7C7">8</text>
+            <text x="50" y="104" text-anchor="end" class="text-[10px]" fill="#9AA7C7">6</text>
+            <text x="50" y="144" text-anchor="end" class="text-[10px]" fill="#9AA7C7">4</text>
+            <text x="50" y="184" text-anchor="end" class="text-[10px]" fill="#9AA7C7">2</text>
+            <!-- 渐变填充区域 -->
+            <defs>
+              <linearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#7C5CFF" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#7C5CFF" stop-opacity="0.02"/>
+              </linearGradient>
+            </defs>
+            <!-- 填充区域 -->
+            <polygon points="100,108 180,84 260,60 340,76 420,44 500,68 560,52 560,180 100,180"
+                     fill="url(#moodGradient)"/>
+            <!-- 折线 -->
+            <polyline points="100,108 180,84 260,60 340,76 420,44 500,68 560,52"
+                      fill="none" stroke="#7C5CFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- 数据点 -->
+            <circle cx="100" cy="108" r="4.5" fill="#070A14" stroke="#7C5CFF" stroke-width="2.5"/>
+            <circle cx="180" cy="84" r="4.5" fill="#070A14" stroke="#7C5CFF" stroke-width="2.5"/>
+            <circle cx="260" cy="60" r="4.5" fill="#070A14" stroke="#7C5CFF" stroke-width="2.5"/>
+            <circle cx="340" cy="76" r="4.5" fill="#070A14" stroke="#7C5CFF" stroke-width="2.5"/>
+            <circle cx="420" cy="44" r="4.5" fill="#070A14" stroke="#7C5CFF" stroke-width="2.5"/>
+            <circle cx="500" cy="68" r="4.5" fill="#070A14" stroke="#7C5CFF" stroke-width="2.5"/>
+            <circle cx="560" cy="52" r="4.5" fill="#070A14" stroke="#7C5CFF" stroke-width="2.5"/>
+            <!-- 数据标签 -->
+            <text x="100" y="100" text-anchor="middle" class="text-[11px] font-semibold" fill="#F7FAFF">6.6</text>
+            <text x="180" y="76" text-anchor="middle" class="text-[11px] font-semibold" fill="#F7FAFF">7.8</text>
+            <text x="260" y="52" text-anchor="middle" class="text-[11px] font-semibold" fill="#F7FAFF">9.0</text>
+            <text x="340" y="68" text-anchor="middle" class="text-[11px] font-semibold" fill="#F7FAFF">8.2</text>
+            <text x="420" y="36" text-anchor="middle" class="text-[11px] font-semibold" fill="#F7FAFF">9.8</text>
+            <text x="500" y="60" text-anchor="middle" class="text-[11px] font-semibold" fill="#F7FAFF">8.6</text>
+            <text x="560" y="44" text-anchor="middle" class="text-[11px] font-semibold" fill="#F7FAFF">9.4</text>
+            <!-- X轴标签 -->
+            <text x="100" y="198" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">3/11 周二</text>
+            <text x="180" y="198" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">3/12 周三</text>
+            <text x="260" y="198" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">3/13 周四</text>
+            <text x="340" y="198" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">3/14 周五</text>
+            <text x="420" y="198" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">3/15 周六</text>
+            <text x="500" y="198" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">3/16 周日</text>
+            <text x="560" y="198" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">3/17 今天</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- "展开更多"按钮 -->
+      <div class="flex justify-center mb-8" id="expand-toggle-area">
+        <button id="btn-expand-more" class="bg-surface-container border-none rounded-xl px-5 py-2.5 text-sm font-medium text-on-surface-variant
+                       hover:bg-surface-container-high hover:text-on-surface transition-all inline-flex items-center gap-2">
+          <i data-lucide="chevron-down" class="w-4 h-4" id="icon-expand"></i>
+          展开更多图表
+        </button>
+      </div>
+
+      <!-- 雷达图/热力图/对比图区域（默认折叠） -->
+      <div class="hidden space-y-6 mb-8" id="expanded-charts-area">
+
+        <!-- 雷达图 + 对比图 并排 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 雷达图：五维综合评估 -->
+          <div class="bg-surface rounded-xl shadow-card p-6" id="radar-chart-card">
+            <h2 class="text-base font-semibold text-on-surface mb-4">五维综合评估</h2>
+            <div class="flex justify-center">
+              <svg viewBox="0 0 280 280" width="280" height="280" id="radar-chart">
+                <!-- 背景网格 -->
+                <polygon points="140,40 235,110 200,230 80,230 45,110" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                <polygon points="140,70 215,125 188,205 92,205 65,125" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                <polygon points="140,100 195,140 176,180 104,180 85,140" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                <polygon points="140,130 175,155 164,155 116,155 105,155" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                <!-- 轴线 -->
+                <line x1="140" y1="140" x2="140" y2="40" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                <line x1="140" y1="140" x2="235" y2="110" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                <line x1="140" y1="140" x2="200" y2="230" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                <line x1="140" y1="140" x2="80" y2="230" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                <line x1="140" y1="140" x2="45" y2="110" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                <!-- 数据区域 -->
+                <polygon points="140,72 216,126 186,202 94,202 64,126"
+                         fill="rgba(124,92,255,0.15)" stroke="#7C5CFF" stroke-width="2" stroke-linejoin="round"/>
+                <!-- 数据点 -->
+                <circle cx="140" cy="72" r="3" fill="#7C5CFF"/>
+                <circle cx="216" cy="126" r="3" fill="#7C5CFF"/>
+                <circle cx="186" cy="202" r="3" fill="#7C5CFF"/>
+                <circle cx="94" cy="202" r="3" fill="#7C5CFF"/>
+                <circle cx="64" cy="126" r="3" fill="#7C5CFF"/>
+                <!-- 标签 -->
+                <text x="140" y="30" text-anchor="middle" class="text-[11px] font-medium" fill="#F7FAFF">学习</text>
+                <text x="250" y="110" text-anchor="start" class="text-[11px] font-medium" fill="#F7FAFF">工作</text>
+                <text x="205" y="248" text-anchor="middle" class="text-[11px] font-medium" fill="#F7FAFF">生活</text>
+                <text x="75" y="248" text-anchor="middle" class="text-[11px] font-medium" fill="#F7FAFF">身体</text>
+                <text x="20" y="110" text-anchor="end" class="text-[11px] font-medium" fill="#F7FAFF">心情</text>
+                <!-- 数值 -->
+                <text x="140" y="82" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">78</text>
+                <text x="208" y="118" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">85</text>
+                <text x="186" y="194" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">62</text>
+                <text x="94" y="194" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">72</text>
+                <text x="72" y="118" text-anchor="middle" class="text-[10px]" fill="#9AA7C7">82</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 对比柱状图：本周 vs 上周 -->
+          <div class="bg-surface rounded-xl shadow-card p-6" id="bar-chart-card">
+            <h2 class="text-base font-semibold text-on-surface mb-4">本周 vs 上周 维度对比</h2>
+            <div class="flex justify-center">
+              <svg viewBox="0 0 320 240" width="320" height="240" id="comparison-bar-chart">
+                <!-- Y轴 -->
+                <line x1="50" y1="20" x2="50" y2="200" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                <line x1="50" y1="200" x2="310" y2="200" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                <!-- 网格线 -->
+                <line x1="50" y1="65" x2="310" y2="65" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                <line x1="50" y1="110" x2="310" y2="110" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                <line x1="50" y1="155" x2="310" y2="155" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                <!-- Y标签 -->
+                <text x="42" y="69" text-anchor="end" class="text-[9px]" fill="#9AA7C7">100</text>
+                <text x="42" y="114" text-anchor="end" class="text-[9px]" fill="#9AA7C7">75</text>
+                <text x="42" y="159" text-anchor="end" class="text-[9px]" fill="#9AA7C7">50</text>
+                <text x="42" y="204" text-anchor="end" class="text-[9px]" fill="#9AA7C7">25</text>
+                <!-- 学习 -->
+                <rect x="68" y="122" width="18" height="78" rx="3" fill="rgba(124,92,255,0.3)"/>
+                <rect x="90" y="95" width="18" height="105" rx="3" fill="#7C5CFF"/>
+                <text x="77" y="218" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">学习</text>
+                <!-- 工作 -->
+                <rect x="128" y="104" width="18" height="96" rx="3" fill="rgba(124,92,255,0.3)"/>
+                <rect x="150" y="86" width="18" height="114" rx="3" fill="#7C5CFF"/>
+                <text x="137" y="218" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">工作</text>
+                <!-- 生活 -->
+                <rect x="188" y="146" width="18" height="54" rx="3" fill="rgba(124,92,255,0.3)"/>
+                <rect x="210" y="131" width="18" height="69" rx="3" fill="#7C5CFF"/>
+                <text x="197" y="218" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">生活</text>
+                <!-- 身体 -->
+                <rect x="248" y="140" width="18" height="60" rx="3" fill="rgba(124,92,255,0.3)"/>
+                <rect x="270" y="128" width="18" height="72" rx="3" fill="#7C5CFF"/>
+                <text x="257" y="218" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">身体</text>
+                <!-- 图例 -->
+                <rect x="70" y="232" width="10" height="10" rx="2" fill="rgba(124,92,255,0.3)"/>
+                <text x="84" y="241" class="text-[9px]" fill="#9AA7C7">上周</text>
+                <rect x="120" y="232" width="10" height="10" rx="2" fill="#7C5CFF"/>
+                <text x="134" y="241" class="text-[9px]" fill="#9AA7C7">本周</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 热力图：日历活跃度 -->
+        <div class="bg-surface rounded-xl shadow-card p-6" id="heatmap-chart-card">
+          <h2 class="text-base font-semibold text-on-surface mb-4">本月活跃热力图</h2>
+          <div class="flex justify-center overflow-x-auto">
+            <svg viewBox="0 0 700 140" class="w-full" style="min-width: 600px;" id="heatmap-chart">
+              <!-- 第1周（3/1-3/2） -->
+              <rect x="30" y="10" width="40" height="40" rx="4" fill="rgba(124,92,255,0.08)"/>
+              <rect x="75" y="10" width="40" height="40" rx="4" fill="rgba(124,92,255,0.15)"/>
+              <text x="50" y="65" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/1</text>
+              <text x="95" y="65" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/2</text>
+              <!-- 第2周（3/3-3/9） -->
+              <rect x="150" y="10" width="40" height="40" rx="4" fill="rgba(124,92,255,0.25)"/>
+              <rect x="195" y="10" width="40" height="40" rx="4" fill="rgba(124,92,255,0.35)"/>
+              <rect x="240" y="10" width="40" height="40" rx="4" fill="rgba(124,92,255,0.45)"/>
+              <rect x="285" y="10" width="40" height="40" rx="4" fill="rgba(124,92,255,0.55)"/>
+              <rect x="330" y="10" width="40" height="40" rx="4" fill="rgba(124,92,255,0.30)"/>
+              <rect x="375" y="10" width="40" height="40" rx="4" fill="rgba(124,92,255,0.20)"/>
+              <rect x="420" y="10" width="40" height="40" rx="4" fill="rgba(124,92,255,0.40)"/>
+              <text x="170" y="65" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/3</text>
+              <text x="215" y="65" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/4</text>
+              <text x="260" y="65" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/5</text>
+              <text x="305" y="65" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/6</text>
+              <text x="350" y="65" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/7</text>
+              <text x="395" y="65" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/8</text>
+              <text x="440" y="65" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/9</text>
+              <!-- 第3周（3/10-3/16） -->
+              <rect x="150" y="80" width="40" height="40" rx="4" fill="rgba(124,92,255,0.50)"/>
+              <rect x="195" y="80" width="40" height="40" rx="4" fill="rgba(124,92,255,0.60)"/>
+              <rect x="240" y="80" width="40" height="40" rx="4" fill="rgba(124,92,255,0.70)"/>
+              <rect x="285" y="80" width="40" height="40" rx="4" fill="rgba(124,92,255,0.55)"/>
+              <rect x="330" y="80" width="40" height="40" rx="4" fill="rgba(124,92,255,0.80)"/>
+              <rect x="375" y="80" width="40" height="40" rx="4" fill="rgba(124,92,255,0.65)"/>
+              <rect x="420" y="80" width="40" height="40" rx="4" fill="rgba(124,92,255,0.75)"/>
+              <text x="170" y="135" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/10</text>
+              <text x="215" y="135" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/11</text>
+              <text x="260" y="135" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/12</text>
+              <text x="305" y="135" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/13</text>
+              <text x="350" y="135" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/14</text>
+              <text x="395" y="135" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/15</text>
+              <text x="440" y="135" text-anchor="middle" class="text-[9px]" fill="#9AA7C7">3/16</text>
+              <!-- 今天 -->
+              <rect x="495" y="80" width="40" height="40" rx="4" fill="#7C5CFF" stroke="#69E7FF" stroke-width="2"/>
+              <text x="515" y="135" text-anchor="middle" class="text-[9px] font-semibold" fill="#69E7FF">今天</text>
+              <!-- 图例 -->
+              <text x="580" y="25" class="text-[9px]" fill="#9AA7C7">低</text>
+              <rect x="600" y="15" width="14" height="14" rx="3" fill="rgba(124,92,255,0.08)"/>
+              <rect x="618" y="15" width="14" height="14" rx="3" fill="rgba(124,92,255,0.25)"/>
+              <rect x="636" y="15" width="14" height="14" rx="3" fill="rgba(124,92,255,0.50)"/>
+              <rect x="654" y="15" width="14" height="14" rx="3" fill="rgba(124,92,255,0.75)"/>
+              <rect x="672" y="15" width="14" height="14" rx="3" fill="#7C5CFF"/>
+              <text x="688" y="25" class="text-[9px]" fill="#9AA7C7">高</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 目标进度条列表 -->
+      <div class="mb-8" id="goals-progress-section">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-semibold text-on-surface">活跃目标</h2>
+          <a href="goals.html" class="text-xs font-medium text-primary hover:underline">查看全部 →</a>
+        </div>
+        <div class="space-y-3" id="goals-progress-list">
+          <!-- 目标-1：每日学习2小时 -->
+          <div class="bg-surface rounded-xl shadow-card p-4 hover:bg-surface-container-high/50 transition-colors cursor-pointer" id="goal-item-1" data-goal-id="goal_1">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-primary/15 text-primary">学习</span>
+                <span class="text-sm font-semibold text-on-surface">每日学习2小时</span>
+              </div>
+              <span class="text-xs font-medium text-success">85%</span>
+            </div>
+            <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" style="width: 85%;"></div>
+            </div>
+            <div class="flex items-center justify-between mt-1.5">
+              <span class="text-xs text-on-surface-variant">当前 1.7h / 目标 2h</span>
+              <span class="text-xs text-on-surface-variant">剩余 12 天</span>
+            </div>
+          </div>
+
+          <!-- 目标-2：每周健身3次 -->
+          <div class="bg-surface rounded-xl shadow-card p-4 hover:bg-surface-container-high/50 transition-colors cursor-pointer" id="goal-item-2" data-goal-id="goal_2">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-success/15 text-success">身体</span>
+                <span class="text-sm font-semibold text-on-surface">每周健身3次</span>
+              </div>
+              <span class="text-xs font-medium text-warning">67%</span>
+            </div>
+            <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-success to-accent rounded-full transition-all" style="width: 67%;"></div>
+            </div>
+            <div class="flex items-center justify-between mt-1.5">
+              <span class="text-xs text-on-surface-variant">本周 2次 / 目标 3次</span>
+              <span class="text-xs text-on-surface-variant">剩余 4 天</span>
+            </div>
+          </div>
+
+          <!-- 目标-3：月度阅读4本书 -->
+          <div class="bg-surface rounded-xl shadow-card p-4 hover:bg-surface-container-high/50 transition-colors cursor-pointer" id="goal-item-3" data-goal-id="goal_3">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-accent/15 text-accent">学习</span>
+                <span class="text-sm font-semibold text-on-surface">月度阅读4本书</span>
+              </div>
+              <span class="text-xs font-medium text-on-surface-variant">50%</span>
+            </div>
+            <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-accent to-primary rounded-full transition-all" style="width: 50%;"></div>
+            </div>
+            <div class="flex items-center justify-between mt-1.5">
+              <span class="text-xs text-on-surface-variant">已读 2本 / 目标 4本</span>
+              <span class="text-xs text-on-surface-variant">剩余 14 天</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+    <!-- @main-content:end -->
+  </div>
+
+  <!-- 浮动新增记录按钮 -->
+  <a href="record-form.html" id="btn-float-add"
+     class="fixed bottom-8 right-8 z-40 w-14 h-14 rounded-full bg-primary text-on-primary shadow-float
+            flex items-center justify-center hover:opacity-90 hover:scale-105 active:scale-95 transition-all"
+     title="新增记录">
+    <i data-lucide="plus" class="w-6 h-6"></i>
+  </a>
+
+  <!-- 头像下拉菜单 -->
+  <div id="avatar-menu" class="hidden absolute right-6 top-14 z-50 w-48 bg-surface-container-highest backdrop-blur-xl border border-outline-variant/30 rounded-xl shadow-dialog p-1.5">
+    <a href="gateway.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="cpu" class="w-4 h-4"></i>模型网关
+    </a>
+    <a href="login.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="log-out" class="w-4 h-4"></i>退出登录
+    </a>
+  </div>
+
+  <script>
+    $(function() {
+
+      // 管理员功能可见性（原型阶段默认显示管理员视图）
+      $('.admin-only').removeClass('hidden');
+
+      // 头像菜单切换
+      $('#avatar-menu-trigger').on('click', function(e) {
+        e.stopPropagation();
+        $('#avatar-menu').toggleClass('hidden');
+      });
+      $(document).on('click', function() {
+        $('#avatar-menu').addClass('hidden');
+      });
+
+      // 管理员视角切换器
+      $('#admin-view-switcher').on('change', function() {
+        var selectedUser = $(this).val();
+        if (selectedUser) {
+          console.log('切换视角到用户:', selectedUser, '—— 后续应实现：刷新仪表盘全部数据（概览卡片/趋势图/目标进度）为该用户数据');
+          $('#greeting-title').text('下午好，' + ($('#admin-view-switcher option:selected').text().replace('被监督用户：', '')) + ' 👋');
+        } else {
+          $('#greeting-title').text('下午好，小初 👋');
+        }
+      });
+
+      // 概览卡片点击 → 跳转记录列表并按维度筛选
+      $('#card-learning').on('click', function() {
+        window.location.href = 'records.html?dimension=learning';
+      });
+      $('#card-work').on('click', function() {
+        window.location.href = 'records.html?dimension=work';
+      });
+      $('#card-health').on('click', function() {
+        window.location.href = 'records.html?dimension=health';
+      });
+      $('#card-mood').on('click', function() {
+        window.location.href = 'records.html?dimension=mood';
+      });
+
+      // 趋势图 Tab 切换（周/月）
+      $('#chart-tab-week').on('click', function() {
+        $(this).removeClass('text-on-surface-variant hover:bg-surface-container').addClass('bg-primary/10 text-primary');
+        $('#chart-tab-month').removeClass('bg-primary/10 text-primary').addClass('text-on-surface-variant hover:bg-surface-container');
+        console.log('切换到周视图 —— 后续应实现：重新渲染折线图为近7天数据');
+      });
+      $('#chart-tab-month').on('click', function() {
+        $(this).removeClass('text-on-surface-variant hover:bg-surface-container').addClass('bg-primary/10 text-primary');
+        $('#chart-tab-week').removeClass('bg-primary/10 text-primary').addClass('text-on-surface-variant hover:bg-surface-container');
+        console.log('切换到月视图 —— 后续应实现：重新渲染折线图为近30天数据');
+      });
+
+      // "展开更多"按钮
+      $('#btn-expand-more').on('click', function() {
+        var $charts = $('#expanded-charts-area');
+        var $icon = $('#icon-expand');
+        if ($charts.hasClass('hidden')) {
+          $charts.removeClass('hidden');
+          $icon.attr('data-lucide', 'chevron-up');
+          $(this).html('<i data-lucide="chevron-up" class="w-4 h-4"></i>收起图表');
+          lucide.createIcons();
+        } else {
+          $charts.addClass('hidden');
+          $icon.attr('data-lucide', 'chevron-down');
+          $(this).html('<i data-lucide="chevron-down" class="w-4 h-4"></i>展开更多图表');
+          lucide.createIcons();
+        }
+      });
+
+      // 目标进度条点击 → 跳转目标详情
+      $('#goal-item-1').on('click', function() {
+        window.location.href = 'goal-detail.html?goal_id=goal_1';
+      });
+      $('#goal-item-2').on('click', function() {
+        window.location.href = 'goal-detail.html?goal_id=goal_2';
+      });
+      $('#goal-item-3').on('click', function() {
+        window.location.href = 'goal-detail.html?goal_id=goal_3';
+      });
+
+    });
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

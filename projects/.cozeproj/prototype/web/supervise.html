@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 === */
+      --color-primary:              #7C5CFF;
+      --color-primary-container:    rgba(124,92,255,0.15);
+      --color-on-primary:           #ffffff;
+      /* === 强调色 === */
+      --color-accent:               #69E7FF;
+      --color-accent-container:     rgba(105,231,255,0.12);
+      /* === 背景 / 表面（毛玻璃层级） === */
+      --color-background:                 #070A14;
+      --color-surface-container-lowest:   rgba(255,255,255,0.03);
+      --color-surface:                    rgba(255,255,255,0.05);
+      --color-surface-container:          rgba(255,255,255,0.08);
+      --color-surface-container-high:     rgba(255,255,255,0.12);
+      --color-surface-container-highest:  rgba(255,255,255,0.16);
+      /* === 文字 === */
+      --color-on-surface:           #F7FAFF;
+      --color-on-surface-variant:   #9AA7C7;
+      /* === 功能色 === */
+      --color-success:  #62FAD3;
+      --color-error:    #FF6B7A;
+      --color-warning:  #F5A623;
+      /* === 边框 === */
+      --color-outline:          rgba(255,255,255,0.12);
+      --color-outline-variant:  rgba(255,255,255,0.06);
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 2px 12px rgba(0,0,0,0.35);
+      --shadow-float:  0 10px 30px rgba(0,0,0,0.45);
+      --shadow-dialog: 0 25px 60px rgba(0,0,0,0.55);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <!-- 图片兜底 -->
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans min-h-screen">
+
+  <!-- @nav:start 导航组件 -->
+  <!-- 顶部导航栏 -->
+  <header class="sticky top-0 z-50 h-16 flex items-center justify-between px-6 border-b border-outline-variant/30 bg-background/80 backdrop-blur-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+        <i data-lucide="brain" class="w-4.5 h-4.5 text-white"></i>
+      </div>
+      <span class="font-bold text-lg tracking-tight">GrowthMind</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- 管理员视角切换器（仅管理员可见，普通用户隐藏） -->
+      <select class="admin-only hidden bg-surface-container border-none rounded-lg px-3 py-1.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30">
+        <option value="">我的视角</option>
+        <option value="user_1">被监督用户：张三</option>
+        <option value="user_2">被监督用户：李四</option>
+      </select>
+      <!-- 用户头像 -->
+      <div class="relative" id="avatar-menu-trigger">
+        <button class="w-8 h-8 rounded-full bg-primary-container text-primary font-semibold text-sm flex items-center justify-center hover:ring-2 hover:ring-primary/40 transition-all">初</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex" style="height: calc(100vh - 4rem)">
+    <!-- 侧边栏 -->
+    <aside class="w-56 shrink-0 overflow-y-auto border-r border-outline-variant/30 bg-background/60 backdrop-blur-lg">
+      <div class="p-3 space-y-0.5">
+        <a href="home.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>仪表盘
+        </a>
+        <a href="records.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>记录列表
+        </a>
+        <a href="analysis.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>智能分析
+        </a>
+        <a href="goals.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>目标管理
+        </a>
+        <div class="my-2 border-t border-outline-variant/30"></div>
+        <a href="supervise.html" class="admin-only flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium text-sm" aria-current="page">
+          <i data-lucide="users" class="w-4 h-4"></i>监督面板
+        </a>
+      </div>
+    </aside>
+
+    <!-- @main-content:start -->
+    <main class="flex-1 min-w-0 overflow-y-auto bg-background p-6">
+
+      <!-- 页面标题区 -->
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-2xl font-bold text-on-surface">监督面板</h1>
+          <p class="text-sm text-on-surface-variant mt-1">管理被监督用户，查看监督概览与提醒规则</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- 提醒规则快捷入口 -->
+          <a href="supervise-rules.html" id="btn-rules-entry" class="bg-surface-container text-on-surface border-none px-4 py-2 rounded-md text-sm font-medium hover:bg-surface-container-high active:scale-[0.98] transition-all inline-flex items-center gap-2">
+            <i data-lucide="bell-ring" class="w-3.5 h-3.5"></i>提醒规则
+          </a>
+          <!-- 添加监督用户按钮 -->
+          <button id="btn-add-supervise" class="bg-primary text-on-primary px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center gap-2">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>添加监督用户
+          </button>
+        </div>
+      </div>
+
+      <!-- 监督概览统计区：4个数字卡片 -->
+      <div class="grid grid-cols-4 gap-4 mb-8">
+        <!-- 统计卡片-监督人数 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-on-surface-variant uppercase tracking-wide">监督人数</span>
+            <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+              <i data-lucide="users" class="w-4 h-4 text-primary"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold text-on-surface">4</p>
+          <p class="text-xs text-on-surface-variant mt-1">共监督 4 位用户</p>
+        </div>
+
+        <!-- 统计卡片-活跃人数 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-on-surface-variant uppercase tracking-wide">活跃人数</span>
+            <div class="w-8 h-8 rounded-lg bg-success/15 flex items-center justify-center">
+              <i data-lucide="activity" class="w-4 h-4 text-success"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold text-on-surface">3</p>
+          <p class="text-xs text-on-surface-variant mt-1">近 7 天有记录</p>
+        </div>
+
+        <!-- 统计卡片-今日已记录 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-on-surface-variant uppercase tracking-wide">今日已记录</span>
+            <div class="w-8 h-8 rounded-lg bg-accent-container flex items-center justify-center">
+              <i data-lucide="clipboard-check" class="w-4 h-4 text-accent"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold text-on-surface">2</p>
+          <p class="text-xs text-on-surface-variant mt-1">今日已完成记录</p>
+        </div>
+
+        <!-- 统计卡片-触发提醒 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-on-surface-variant uppercase tracking-wide">触发提醒</span>
+            <div class="w-8 h-8 rounded-lg bg-warning/15 flex items-center justify-center">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-warning"></i>
+            </div>
+          </div>
+          <p class="text-3xl font-bold text-on-surface">1</p>
+          <p class="text-xs text-on-surface-variant mt-1">待处理提醒</p>
+        </div>
+      </div>
+
+      <!-- 被监督用户卡片列表 -->
+      <div class="mb-6">
+        <h2 class="text-base font-semibold text-on-surface mb-4">被监督用户</h2>
+        <div class="grid grid-cols-2 gap-4">
+
+          <!-- 列表-用户1：张三 -->
+          <div class="bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer" id="user-card-1">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <!-- 头像圆圈 -->
+                <div class="w-11 h-11 rounded-full bg-primary-container text-primary font-semibold text-base flex items-center justify-center shrink-0">张</div>
+                <div>
+                  <h3 class="text-base font-semibold text-on-surface">张三</h3>
+                  <p class="text-xs text-on-surface-variant">最近记录：2 小时前</p>
+                </div>
+              </div>
+              <!-- 活跃状态标签 -->
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-success/15 text-success">活跃</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <div>
+                <p class="text-xs text-on-surface-variant">本周记录</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">5 次</p>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant">心情均值</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">7.5</p>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant">目标完成率</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">65%</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="supervise-user-detail.html?user_id=1" class="flex-1 text-center bg-surface-container border-none px-3 py-2 rounded-md text-sm font-medium text-on-surface hover:bg-surface-container-high active:scale-[0.98] transition-all inline-flex items-center justify-center gap-1.5">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i>查看详情
+              </a>
+              <button class="btn-remove-supervise bg-surface-container border-none px-3 py-2 rounded-md text-sm font-medium text-error hover:bg-error/10 active:scale-[0.98] transition-all inline-flex items-center gap-1.5" data-user-id="1" data-user-name="张三">
+                <i data-lucide="user-x" class="w-3.5 h-3.5"></i>解除监督
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-用户2：李四 -->
+          <div class="bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer" id="user-card-2">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <!-- 头像圆圈 -->
+                <div class="w-11 h-11 rounded-full bg-accent-container text-accent font-semibold text-base flex items-center justify-center shrink-0">李</div>
+                <div>
+                  <h3 class="text-base font-semibold text-on-surface">李四</h3>
+                  <p class="text-xs text-on-surface-variant">最近记录：5 小时前</p>
+                </div>
+              </div>
+              <!-- 活跃状态标签 -->
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-success/15 text-success">活跃</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <div>
+                <p class="text-xs text-on-surface-variant">本周记录</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">3 次</p>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant">心情均值</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">6.8</p>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant">目标完成率</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">42%</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="supervise-user-detail.html?user_id=2" class="flex-1 text-center bg-surface-container border-none px-3 py-2 rounded-md text-sm font-medium text-on-surface hover:bg-surface-container-high active:scale-[0.98] transition-all inline-flex items-center justify-center gap-1.5">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i>查看详情
+              </a>
+              <button class="btn-remove-supervise bg-surface-container border-none px-3 py-2 rounded-md text-sm font-medium text-error hover:bg-error/10 active:scale-[0.98] transition-all inline-flex items-center gap-1.5" data-user-id="2" data-user-name="李四">
+                <i data-lucide="user-x" class="w-3.5 h-3.5"></i>解除监督
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-用户3：王小明 -->
+          <div class="bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer" id="user-card-3">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <!-- 头像圆圈 -->
+                <div class="w-11 h-11 rounded-full bg-warning/15 text-warning font-semibold text-base flex items-center justify-center shrink-0">王</div>
+                <div>
+                  <h3 class="text-base font-semibold text-on-surface">王小明</h3>
+                  <p class="text-xs text-on-surface-variant">最近记录：3 天前</p>
+                </div>
+              </div>
+              <!-- 不活跃状态标签 -->
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-surface-container-high text-on-surface-variant">3天未记录</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <div>
+                <p class="text-xs text-on-surface-variant">本周记录</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">1 次</p>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant">心情均值</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">5.2</p>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant">目标完成率</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">28%</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="supervise-user-detail.html?user_id=3" class="flex-1 text-center bg-surface-container border-none px-3 py-2 rounded-md text-sm font-medium text-on-surface hover:bg-surface-container-high active:scale-[0.98] transition-all inline-flex items-center justify-center gap-1.5">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i>查看详情
+              </a>
+              <button class="btn-remove-supervise bg-surface-container border-none px-3 py-2 rounded-md text-sm font-medium text-error hover:bg-error/10 active:scale-[0.98] transition-all inline-flex items-center gap-1.5" data-user-id="3" data-user-name="王小明">
+                <i data-lucide="user-x" class="w-3.5 h-3.5"></i>解除监督
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-用户4：赵雨涵 -->
+          <div class="bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer" id="user-card-4">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <!-- 头像圆圈 -->
+                <div class="w-11 h-11 rounded-full bg-success/15 text-success font-semibold text-base flex items-center justify-center shrink-0">赵</div>
+                <div>
+                  <h3 class="text-base font-semibold text-on-surface">赵雨涵</h3>
+                  <p class="text-xs text-on-surface-variant">最近记录：1 天前</p>
+                </div>
+              </div>
+              <!-- 活跃状态标签 -->
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-success/15 text-success">活跃</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <div>
+                <p class="text-xs text-on-surface-variant">本周记录</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">4 次</p>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant">心情均值</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">8.1</p>
+              </div>
+              <div>
+                <p class="text-xs text-on-surface-variant">目标完成率</p>
+                <p class="text-sm font-semibold text-on-surface mt-0.5">78%</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="supervise-user-detail.html?user_id=4" class="flex-1 text-center bg-surface-container border-none px-3 py-2 rounded-md text-sm font-medium text-on-surface hover:bg-surface-container-high active:scale-[0.98] transition-all inline-flex items-center justify-center gap-1.5">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i>查看详情
+              </a>
+              <button class="btn-remove-supervise bg-surface-container border-none px-3 py-2 rounded-md text-sm font-medium text-error hover:bg-error/10 active:scale-[0.98] transition-all inline-flex items-center gap-1.5" data-user-id="4" data-user-name="赵雨涵">
+                <i data-lucide="user-x" class="w-3.5 h-3.5"></i>解除监督
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+    <!-- @main-content:end -->
+  </div>
+
+  <!-- 解除监督确认弹窗 -->
+  <div id="modal-remove-supervision" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-surface-container-highest backdrop-blur-xl border border-outline-variant/30 rounded-xl shadow-dialog max-w-md w-full p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-full bg-error/15 flex items-center justify-center">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-error"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-semibold text-on-surface">确认解除监督</h3>
+          <p class="text-sm text-on-surface-variant" id="modal-remove-user-name">解除后将无法查看该用户的数据，已配置的提醒规则将自动禁用</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 justify-end mt-6">
+        <button id="btn-cancel-remove" class="bg-surface-container text-on-surface border-none px-4 py-2 rounded-md text-sm font-medium hover:bg-surface-container-high active:scale-[0.98] transition-all">取消</button>
+        <button id="btn-confirm-remove" class="bg-error text-white px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all">确认解除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加监督用户底部面板 -->
+  <div id="sheet-add-supervise" class="hidden fixed inset-0 bg-black/50 flex items-end justify-center z-50">
+    <div class="bg-surface-container-highest backdrop-blur-xl border border-outline-variant/30 rounded-t-2xl shadow-dialog w-full max-w-lg max-h-[70vh] overflow-y-auto p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-semibold text-on-surface">添加监督用户</h3>
+        <button id="btn-close-add-sheet" class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors">
+          <i data-lucide="x" class="w-4 h-4 text-on-surface-variant"></i>
+        </button>
+      </div>
+      <!-- 搜索框 -->
+      <div class="relative mb-4">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/50"></i>
+        <input id="input-search-user" class="w-full bg-surface-container border-none rounded-md pl-10 pr-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" placeholder="搜索用户邮箱或用户名..."/>
+      </div>
+      <!-- 搜索结果列表（Mock） -->
+      <div class="space-y-2" id="search-result-list">
+        <!-- 搜索结果-用户A -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-surface hover:bg-surface-container transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-primary-container text-primary font-semibold text-sm flex items-center justify-center">陈</div>
+            <div>
+              <p class="text-sm font-medium text-on-surface">陈思远</p>
+              <p class="text-xs text-on-surface-variant">chen@example.com</p>
+            </div>
+          </div>
+          <button class="btn-add-user bg-primary text-on-primary px-3 py-1.5 rounded-md text-xs font-medium hover:opacity-90 active:scale-[0.98] transition-all" data-user-name="陈思远">添加</button>
+        </div>
+        <!-- 搜索结果-用户B -->
+        <div class="flex items-center justify-between p-3 rounded-lg bg-surface hover:bg-surface-container transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-accent-container text-accent font-semibold text-sm flex items-center justify-center">刘</div>
+            <div>
+              <p class="text-sm font-medium text-on-surface">刘佳怡</p>
+              <p class="text-xs text-on-surface-variant">liu@example.com</p>
+            </div>
+          </div>
+          <button class="btn-add-user bg-primary text-on-primary px-3 py-1.5 rounded-md text-xs font-medium hover:opacity-90 active:scale-[0.98] transition-all" data-user-name="刘佳怡">添加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 头像下拉菜单 -->
+  <div id="avatar-menu" class="hidden absolute right-6 top-14 z-50 w-48 bg-surface-container-highest backdrop-blur-xl border border-outline-variant/30 rounded-xl shadow-dialog p-1.5">
+    <a href="gateway.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="cpu" class="w-4 h-4"></i>模型网关
+    </a>
+    <a href="login.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="log-out" class="w-4 h-4"></i>退出登录
+    </a>
+  </div>
+
+  <script>
+    $(function() {
+      // 管理员功能可见性（原型阶段默认显示管理员视图）
+      $('.admin-only').removeClass('hidden');
+
+      // 头像菜单切换
+      $('#avatar-menu-trigger').on('click', function(e) {
+        e.stopPropagation();
+        $('#avatar-menu').toggleClass('hidden');
+      });
+      $(document).on('click', function() {
+        $('#avatar-menu').addClass('hidden');
+      });
+
+      // 用户卡片点击跳转详情（排除按钮区域）
+      $('[id^="user-card-"]').on('click', function(e) {
+        if ($(e.target).closest('button, a').length) return;
+        var cardId = $(this).attr('id');
+        var userId = cardId.replace('user-card-', '');
+        window.location.href = 'supervise-user-detail.html?user_id=' + userId;
+      });
+
+      // 解除监督按钮 - 点击后弹出确认弹窗
+      // 确认后应实现：
+      // 1. 调用 API 解除监督关系
+      // 2. 从列表中移除该用户卡片
+      // 3. 更新监督概览统计数据
+      // 4. 关闭弹窗
+      var currentRemoveUserId = null;
+      var currentRemoveUserName = '';
+
+      $('.btn-remove-supervise').on('click', function(e) {
+        e.stopPropagation();
+        currentRemoveUserId = $(this).data('user-id');
+        currentRemoveUserName = $(this).data('user-name');
+        $('#modal-remove-user-name').text('解除后将无法查看 ' + currentRemoveUserName + ' 的数据，已配置的提醒规则将自动禁用');
+        $('#modal-remove-supervision').removeClass('hidden');
+      });
+
+      // 取消解除
+      $('#btn-cancel-remove').on('click', function() {
+        $('#modal-remove-supervision').addClass('hidden');
+        currentRemoveUserId = null;
+        currentRemoveUserName = '';
+      });
+
+      // 确认解除
+      $('#btn-confirm-remove').on('click', function() {
+        console.log('解除监督用户:', currentRemoveUserId, currentRemoveUserName);
+        // 移除对应卡片
+        $('#user-card-' + currentRemoveUserId).remove();
+        $('#modal-remove-supervision').addClass('hidden');
+        currentRemoveUserId = null;
+        currentRemoveUserName = '';
+      });
+
+      // 点击弹窗遮罩关闭
+      $('#modal-remove-supervision').on('click', function(e) {
+        if ($(e.target).is('#modal-remove-supervision')) {
+          $(this).addClass('hidden');
+        }
+      });
+
+      // 添加监督用户按钮 - 打开底部面板
+      $('#btn-add-supervise').on('click', function() {
+        $('#sheet-add-supervise').removeClass('hidden');
+      });
+
+      // 关闭添加面板
+      $('#btn-close-add-sheet').on('click', function() {
+        $('#sheet-add-supervise').addClass('hidden');
+      });
+      $('#sheet-add-supervise').on('click', function(e) {
+        if ($(e.target).is('#sheet-add-supervise')) {
+          $(this).addClass('hidden');
+        }
+      });
+
+      // 添加用户按钮 - 点击后应实现：
+      // 1. 调用 API 建立监督关系
+      // 2. 在用户卡片列表中添加新卡片
+      // 3. 更新监督概览统计数据
+      // 4. 关闭底部面板
+      $('.btn-add-user').on('click', function() {
+        var userName = $(this).data('user-name');
+        console.log('添加监督用户:', userName);
+        $('#sheet-add-supervise').addClass('hidden');
+      });
+
+      // 搜索框输入 - 应实现防抖搜索：
+      // 1. 监听 input 事件，300ms 防抖
+      // 2. 调用 API 搜索用户
+      // 3. 更新搜索结果列表
+      $('#input-search-user').on('input', function() {
+        console.log('搜索用户:', $(this).val());
+      });
+
+      // 初始化 Lucide 图标
+      lucide.createIcons();
+    });
+  </script>
+</body>
+
+</html>

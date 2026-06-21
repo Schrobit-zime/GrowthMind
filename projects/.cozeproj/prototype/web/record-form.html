@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 === */
+      --color-primary:              #7C5CFF;
+      --color-primary-container:    rgba(124,92,255,0.15);
+      --color-on-primary:           #ffffff;
+      /* === 强调色 === */
+      --color-accent:               #69E7FF;
+      --color-accent-container:     rgba(105,231,255,0.12);
+      /* === 背景 / 表面（毛玻璃层级） === */
+      --color-background:                 #070A14;
+      --color-surface-container-lowest:   rgba(255,255,255,0.03);
+      --color-surface:                    rgba(255,255,255,0.05);
+      --color-surface-container:          rgba(255,255,255,0.08);
+      --color-surface-container-high:     rgba(255,255,255,0.12);
+      --color-surface-container-highest:  rgba(255,255,255,0.16);
+      /* === 文字 === */
+      --color-on-surface:           #F7FAFF;
+      --color-on-surface-variant:   #9AA7C7;
+      /* === 功能色 === */
+      --color-success:  #62FAD3;
+      --color-error:    #FF6B7A;
+      --color-warning:  #F5A623;
+      /* === 边框 === */
+      --color-outline:          rgba(255,255,255,0.12);
+      --color-outline-variant:  rgba(255,255,255,0.06);
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 2px 12px rgba(0,0,0,0.35);
+      --shadow-float:  0 10px 30px rgba(0,0,0,0.45);
+      --shadow-dialog: 0 25px 60px rgba(0,0,0,0.55);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans min-h-screen">
+
+  <!-- 简化顶栏：返回按钮 + 标题 -->
+  <header class="sticky top-0 z-50 h-16 flex items-center gap-4 px-6 border-b border-outline-variant/30 bg-background/80 backdrop-blur-xl">
+    <button id="btn-back" class="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">
+      <i data-lucide="arrow-left" class="w-5 h-5"></i>
+    </button>
+    <span class="font-bold text-lg tracking-tight">新增记录</span>
+  </header>
+
+  <!-- @main-content:start -->
+  <main class="max-w-4xl mx-auto px-6 py-8 space-y-10">
+
+    <!-- ===== 快捷模板选择区 ===== -->
+    <section id="template-section">
+      <h2 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-4">快捷模板</h2>
+      <div class="grid grid-cols-4 gap-3">
+        <!-- 模板卡片-只记心情 -->
+        <div id="template-mood" class="template-card bg-surface rounded-xl shadow-card p-4 cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all" data-template="mood">
+          <div class="w-9 h-9 rounded-lg bg-accent-container flex items-center justify-center mb-3">
+            <i data-lucide="smile" class="w-4.5 h-4.5 text-accent"></i>
+          </div>
+          <p class="text-sm font-semibold text-on-surface">只记心情</p>
+          <p class="text-xs text-on-surface-variant mt-1">快速记录情绪状态</p>
+        </div>
+        <!-- 模板卡片-工作总结 -->
+        <div id="template-work" class="template-card bg-surface rounded-xl shadow-card p-4 cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all" data-template="work">
+          <div class="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center mb-3">
+            <i data-lucide="briefcase" class="w-4.5 h-4.5 text-primary"></i>
+          </div>
+          <p class="text-sm font-semibold text-on-surface">工作总结</p>
+          <p class="text-xs text-on-surface-variant mt-1">回顾工作成果与效率</p>
+        </div>
+        <!-- 模板卡片-学习打卡 -->
+        <div id="template-learning" class="template-card bg-surface rounded-xl shadow-card p-4 cursor-pointer border-2 border-transparent hover:border-primary/30 transition-all" data-template="learning">
+          <div class="w-9 h-9 rounded-lg bg-success/15 flex items-center justify-center mb-3">
+            <i data-lucide="book-open" class="w-4.5 h-4.5 text-success"></i>
+          </div>
+          <p class="text-sm font-semibold text-on-surface">学习打卡</p>
+          <p class="text-xs text-on-surface-variant mt-1">记录学习时长与收获</p>
+        </div>
+        <!-- 模板卡片-全面记录（默认选中） -->
+        <div id="template-full" class="template-card bg-surface rounded-xl shadow-card p-4 cursor-pointer border-2 border-primary bg-primary/5 transition-all" data-template="full">
+          <div class="w-9 h-9 rounded-lg bg-warning/15 flex items-center justify-center mb-3">
+            <i data-lucide="layers" class="w-4.5 h-4.5 text-warning"></i>
+          </div>
+          <p class="text-sm font-semibold text-on-surface">全面记录</p>
+          <p class="text-xs text-on-surface-variant mt-1">覆盖全部五个维度</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 时间维度选择器 ===== -->
+    <section id="time-type-section">
+      <h2 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-4">时间维度</h2>
+      <div class="flex flex-wrap gap-2" id="time-type-group">
+        <button class="time-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-type="daily">日报</button>
+        <button class="time-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-type="weekly">周报</button>
+        <button class="time-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-type="monthly">月报</button>
+        <button class="time-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-type="annual">年报</button>
+        <button class="time-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-type="morning">早报</button>
+        <button class="time-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-type="noon">午报</button>
+        <button class="time-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-type="evening">晚报</button>
+        <button class="time-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-type="custom">自定义</button>
+      </div>
+      <!-- 自定义时间范围（默认隐藏） -->
+      <div id="custom-date-range" class="hidden mt-3 flex items-center gap-3">
+        <input id="date-start" type="date" class="bg-surface-container border-none rounded-lg px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+        <span class="text-sm text-on-surface-variant">至</span>
+        <input id="date-end" type="date" class="bg-surface-container border-none rounded-lg px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+      </div>
+    </section>
+
+    <!-- ===== 日期选择器 ===== -->
+    <section id="date-section">
+      <h2 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-4">日期</h2>
+      <input id="record-date" type="date" value="2025-01-15" class="bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors w-full max-w-xs" />
+    </section>
+
+    <!-- ===== 维度开关面板 ===== -->
+    <section id="dimension-toggle-section">
+      <h2 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-4">记录维度 <span class="text-xs font-normal text-on-surface-variant/60 ml-1">（至少选择一个）</span></h2>
+      <div class="flex flex-wrap gap-3" id="dimension-toggles">
+        <!-- 学习维度开关 -->
+        <label id="toggle-learning" class="dimension-toggle flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-surface-container cursor-pointer hover:bg-surface-container-high transition-all border-2 border-transparent has-[:checked]:border-primary has-[:checked]:bg-primary/5" data-dim="learning">
+          <input type="checkbox" class="dim-checkbox sr-only" data-dim="learning" checked />
+          <i data-lucide="book-open" class="w-4 h-4 text-on-surface-variant"></i>
+          <span class="text-sm font-medium text-on-surface">学习</span>
+        </label>
+        <!-- 工作维度开关 -->
+        <label id="toggle-work" class="dimension-toggle flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-surface-container cursor-pointer hover:bg-surface-container-high transition-all border-2 border-transparent has-[:checked]:border-primary has-[:checked]:bg-primary/5" data-dim="work">
+          <input type="checkbox" class="dim-checkbox sr-only" data-dim="work" checked />
+          <i data-lucide="briefcase" class="w-4 h-4 text-on-surface-variant"></i>
+          <span class="text-sm font-medium text-on-surface">工作</span>
+        </label>
+        <!-- 生活维度开关 -->
+        <label id="toggle-life" class="dimension-toggle flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-surface-container cursor-pointer hover:bg-surface-container-high transition-all border-2 border-transparent has-[:checked]:border-primary has-[:checked]:bg-primary/5" data-dim="life">
+          <input type="checkbox" class="dim-checkbox sr-only" data-dim="life" checked />
+          <i data-lucide="home" class="w-4 h-4 text-on-surface-variant"></i>
+          <span class="text-sm font-medium text-on-surface">生活</span>
+        </label>
+        <!-- 身体维度开关 -->
+        <label id="toggle-health" class="dimension-toggle flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-surface-container cursor-pointer hover:bg-surface-container-high transition-all border-2 border-transparent has-[:checked]:border-primary has-[:checked]:bg-primary/5" data-dim="health">
+          <input type="checkbox" class="dim-checkbox sr-only" data-dim="health" checked />
+          <i data-lucide="heart-pulse" class="w-4 h-4 text-on-surface-variant"></i>
+          <span class="text-sm font-medium text-on-surface">身体</span>
+        </label>
+        <!-- 心情维度开关 -->
+        <label id="toggle-mood" class="dimension-toggle flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-surface-container cursor-pointer hover:bg-surface-container-high transition-all border-2 border-transparent has-[:checked]:border-primary has-[:checked]:bg-primary/5" data-dim="mood">
+          <input type="checkbox" class="dim-checkbox sr-only" data-dim="mood" checked />
+          <i data-lucide="smile" class="w-4 h-4 text-on-surface-variant"></i>
+          <span class="text-sm font-medium text-on-surface">心情</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- ===== 动态表单区域 ===== -->
+    <section id="form-fields-section" class="space-y-8">
+
+      <!-- 学习维度表单 -->
+      <div id="form-learning" class="dimension-form bg-surface rounded-xl shadow-card p-6 space-y-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-md bg-success/15 flex items-center justify-center">
+            <i data-lucide="book-open" class="w-3.5 h-3.5 text-success"></i>
+          </div>
+          <h3 class="text-base font-semibold text-on-surface">学习</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-on-surface-variant">学习时长（分钟）</label>
+            <input id="learning-duration" type="number" value="120" min="0" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-on-surface-variant">掌握度（1-10）</label>
+            <input id="learning-mastery" type="range" min="1" max="10" value="7" class="w-full accent-primary" />
+            <div class="flex justify-between text-xs text-on-surface-variant">
+              <span>1</span><span id="learning-mastery-value" class="text-primary font-semibold">7</span><span>10</span>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">学习内容</label>
+          <input id="learning-content" type="text" value="阅读《认知觉醒》第3-5章，学习元认知理论" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">新技能</label>
+          <input id="learning-skills" type="text" value="掌握了番茄工作法的进阶技巧" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">读书笔记</label>
+          <textarea id="learning-notes" rows="3" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors resize-none">元认知是人对自身认知过程的觉察与调控能力。通过每日反思和冥想练习可以有效提升元认知水平，帮助做出更理性的决策。</textarea>
+        </div>
+      </div>
+
+      <!-- 工作维度表单 -->
+      <div id="form-work" class="dimension-form bg-surface rounded-xl shadow-card p-6 space-y-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-md bg-primary-container flex items-center justify-center">
+            <i data-lucide="briefcase" class="w-3.5 h-3.5 text-primary"></i>
+          </div>
+          <h3 class="text-base font-semibold text-on-surface">工作</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-on-surface-variant">任务完成量</label>
+            <input id="work-tasks" type="number" value="8" min="0" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-on-surface-variant">工作效率（1-10）</label>
+            <input id="work-efficiency" type="range" min="1" max="10" value="8" class="w-full accent-primary" />
+            <div class="flex justify-between text-xs text-on-surface-variant">
+              <span>1</span><span id="work-efficiency-value" class="text-primary font-semibold">8</span><span>10</span>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">项目进展</label>
+          <input id="work-progress" type="text" value="GrowthMind 原型设计阶段完成，进入前端开发" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">工作心得</label>
+          <textarea id="work-insights" rows="3" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors resize-none">今天采用了新的任务优先级管理方法，将任务按重要/紧急四象限分类后，处理效率明显提升。上午集中精力完成了3个高优先级任务。</textarea>
+        </div>
+      </div>
+
+      <!-- 生活维度表单 -->
+      <div id="form-life" class="dimension-form bg-surface rounded-xl shadow-card p-6 space-y-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-md bg-accent-container flex items-center justify-center">
+            <i data-lucide="home" class="w-3.5 h-3.5 text-accent"></i>
+          </div>
+          <h3 class="text-base font-semibold text-on-surface">生活</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-on-surface-variant">入睡时间</label>
+            <input id="life-sleep-time" type="time" value="23:30" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-on-surface-variant">起床时间</label>
+            <input id="life-wake-time" type="time" value="07:00" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">饮食</label>
+          <input id="life-diet" type="text" value="早餐燕麦粥+鸡蛋，午餐鸡胸沙拉，晚餐清蒸鱼+蔬菜" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">运动</label>
+          <input id="life-exercise" type="text" value="晨跑5公里，晚間瑜伽30分钟" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">社交</label>
+          <input id="life-social" type="text" value="与团队成员午餐交流，晚上和家人视频通话" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+        </div>
+      </div>
+
+      <!-- 身体维度表单 -->
+      <div id="form-health" class="dimension-form bg-surface rounded-xl shadow-card p-6 space-y-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-md bg-error/15 flex items-center justify-center">
+            <i data-lucide="heart-pulse" class="w-3.5 h-3.5 text-error"></i>
+          </div>
+          <h3 class="text-base font-semibold text-on-surface">身体</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-on-surface-variant">体重（kg）</label>
+            <input id="health-weight" type="number" value="68.5" step="0.1" min="0" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-on-surface-variant">静息心率（bpm）</label>
+            <input id="health-heart-rate" type="number" value="62" min="0" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-on-surface-variant">睡眠质量（1-10）</label>
+            <input id="health-sleep-quality" type="range" min="1" max="10" value="8" class="w-full accent-primary" />
+            <div class="flex justify-between text-xs text-on-surface-variant">
+              <span>1</span><span id="health-sleep-quality-value" class="text-primary font-semibold">8</span><span>10</span>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-on-surface-variant">精力水平（1-10）</label>
+            <input id="health-energy" type="range" min="1" max="10" value="7" class="w-full accent-primary" />
+            <div class="flex justify-between text-xs text-on-surface-variant">
+              <span>1</span><span id="health-energy-value" class="text-primary font-semibold">7</span><span>10</span>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">身体症状</label>
+          <input id="health-symptoms" type="text" value="下午略有肩颈酸痛，做了拉伸后缓解" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+        </div>
+      </div>
+
+      <!-- 心情维度表单 -->
+      <div id="form-mood" class="dimension-form bg-surface rounded-xl shadow-card p-6 space-y-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-md bg-warning/15 flex items-center justify-center">
+            <i data-lucide="smile" class="w-3.5 h-3.5 text-warning"></i>
+          </div>
+          <h3 class="text-base font-semibold text-on-surface">心情</h3>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">情绪评分（1-10）</label>
+          <div class="flex items-center gap-4">
+            <input id="mood-score" type="range" min="1" max="10" value="8" class="flex-1 accent-primary" />
+            <span id="mood-score-display" class="text-2xl font-bold text-primary min-w-[2ch] text-right">8</span>
+          </div>
+          <div class="flex justify-between text-xs text-on-surface-variant">
+            <span>😔 1</span><span>10 😊</span>
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">心情关键词</label>
+          <div class="flex flex-wrap gap-2" id="mood-keywords">
+            <span class="mood-keyword-tag inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-primary/15 text-primary cursor-pointer hover:bg-primary/25 transition-colors" data-keyword="充实">充实</span>
+            <span class="mood-keyword-tag inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-primary/15 text-primary cursor-pointer hover:bg-primary/25 transition-colors" data-keyword="满足">满足</span>
+            <span class="mood-keyword-tag inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-colors" data-keyword="平静">平静</span>
+            <span class="mood-keyword-tag inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-colors" data-keyword="感恩">感恩</span>
+            <span class="mood-keyword-tag inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-colors" data-keyword="期待">期待</span>
+            <span class="mood-keyword-tag inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-colors" data-keyword="专注">专注</span>
+            <span class="mood-keyword-tag inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-colors" data-keyword="疲惫">疲惫</span>
+            <span class="mood-keyword-tag inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-colors" data-keyword="焦虑">焦虑</span>
+            <span class="mood-keyword-tag inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-colors" data-keyword="兴奋">兴奋</span>
+            <span class="mood-keyword-tag inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant cursor-pointer hover:bg-surface-container-high transition-colors" data-keyword="放松">放松</span>
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">压力等级（1-10）</label>
+          <input id="mood-stress" type="range" min="1" max="10" value="3" class="w-full accent-primary" />
+          <div class="flex justify-between text-xs text-on-surface-variant">
+            <span>轻松 1</span><span id="mood-stress-value" class="text-primary font-semibold">3</span><span>10 高压</span>
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-on-surface-variant">感恩日记</label>
+          <textarea id="mood-gratitude" rows="3" class="w-full bg-surface-container border-none rounded-lg px-3 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors resize-none">今天感恩三件事：1. 早上跑步时看到了美丽的日出；2. 同事主动帮忙解决了一个技术难题；3. 晚上吃到了妈妈寄来的家乡特产。</textarea>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ===== 关联目标下拉选择器 ===== -->
+    <section id="goal-link-section">
+      <h2 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-4">关联目标 <span class="text-xs font-normal text-on-surface-variant/60 ml-1">（可选）</span></h2>
+      <select id="goal-select" class="w-full max-w-md bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors appearance-none cursor-pointer" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239AA7C7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; padding-right: 40px;">
+        <option value="">不关联目标</option>
+        <!-- Mock 目标列表-目标1 -->
+        <option value="goal_1" selected>🏃 每日运动30分钟（进行中）</option>
+        <!-- Mock 目标列表-目标2 -->
+        <option value="goal_2">📚 每周阅读10小时（进行中）</option>
+        <!-- Mock 目标列表-目标3 -->
+        <option value="goal_3">💻 完成GrowthMind MVP开发（进行中）</option>
+        <!-- Mock 目标列表-目标4 -->
+        <option value="goal_4">🧘 每日冥想15分钟（进行中）</option>
+        <!-- Mock 目标列表-目标5 -->
+        <option value="goal_5">📝 每日写感恩日记（已完成）</option>
+      </select>
+    </section>
+
+    <!-- ===== 底部操作按钮 ===== -->
+    <section id="action-section" class="flex items-center gap-3 pt-4 border-t border-outline-variant/30">
+      <button id="btn-save" class="flex-1 bg-primary text-on-primary px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2">
+        <i data-lucide="check" class="w-4 h-4"></i>保存记录
+      </button>
+      <button id="btn-cancel" class="px-6 py-3 rounded-xl text-sm font-medium text-on-surface-variant bg-surface-container hover:bg-surface-container-high active:scale-[0.98] transition-all inline-flex items-center gap-2">
+        <i data-lucide="x" class="w-4 h-4"></i>取消
+      </button>
+    </section>
+
+  </main>
+  <!-- @main-content:end -->
+
+  <!-- 放弃确认弹窗 -->
+  <div id="modal-discard" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-surface rounded-xl shadow-dialog max-w-sm w-full p-6 space-y-5">
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 rounded-full bg-warning/15 flex items-center justify-center mx-auto">
+          <i data-lucide="alert-triangle" class="w-6 h-6 text-warning"></i>
+        </div>
+        <h3 class="text-base font-semibold text-on-surface">放弃编辑？</h3>
+        <p class="text-sm text-on-surface-variant">你有未保存的内容，放弃后所有修改将丢失。</p>
+      </div>
+      <div class="flex gap-3">
+        <button id="btn-discard-confirm" class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium bg-error/15 text-error hover:bg-error/25 transition-colors">放弃</button>
+        <button id="btn-discard-cancel" class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors">继续编辑</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $(function() {
+
+      // ===== 快捷模板切换 =====
+      var templateConfig = {
+        'mood':    { dims: ['mood'], desc: '只记心情' },
+        'work':    { dims: ['work'], desc: '工作总结' },
+        'learning':{ dims: ['learning'], desc: '学习打卡' },
+        'full':    { dims: ['learning','work','life','health','mood'], desc: '全面记录' }
+      };
+
+      $('#template-section').on('click', '.template-card', function() {
+        var tpl = $(this).data('template');
+        // 更新模板卡片选中态
+        $('.template-card').removeClass('border-primary bg-primary/5').addClass('border-transparent');
+        $(this).addClass('border-primary bg-primary/5').removeClass('border-transparent');
+        // 根据模板配置更新维度开关
+        var cfg = templateConfig[tpl];
+        $('.dim-checkbox').prop('checked', false);
+        $.each(cfg.dims, function(i, dim) {
+          $('.dim-checkbox[data-dim="' + dim + '"]').prop('checked', true);
+        });
+        // 更新维度开关视觉状态
+        updateDimensionToggleStyles();
+        // 展开/收起对应表单
+        updateFormVisibility();
+      });
+
+      // ===== 时间维度选择 =====
+      $('#time-type-group').on('click', '.time-type-btn', function() {
+        var type = $(this).data('type');
+        $('.time-type-btn').removeClass('bg-primary/15 text-primary').addClass('bg-surface-container text-on-surface-variant');
+        $(this).addClass('bg-primary/15 text-primary').removeClass('bg-surface-container text-on-surface-variant');
+        // 自定义时间维度显示日期范围选择器
+        if (type === 'custom') {
+          $('#custom-date-range').removeClass('hidden');
+        } else {
+          $('#custom-date-range').addClass('hidden');
+        }
+      });
+
+      // ===== 维度开关切换 =====
+      $('#dimension-toggles').on('change', '.dim-checkbox', function() {
+        updateDimensionToggleStyles();
+        updateFormVisibility();
+      });
+
+      function updateDimensionToggleStyles() {
+        $('.dimension-toggle').each(function() {
+          var checked = $(this).find('.dim-checkbox').is(':checked');
+          if (checked) {
+            $(this).addClass('border-primary bg-primary/5').removeClass('border-transparent');
+          } else {
+            $(this).removeClass('border-primary bg-primary/5').addClass('border-transparent');
+          }
+        });
+      }
+
+      function updateFormVisibility() {
+        $('.dim-checkbox').each(function() {
+          var dim = $(this).data('dim');
+          var checked = $(this).is(':checked');
+          if (checked) {
+            $('#form-' + dim).removeClass('hidden');
+          } else {
+            $('#form-' + dim).addClass('hidden');
+          }
+        });
+      }
+
+      // ===== 滑块数值实时显示 =====
+      $('#learning-mastery').on('input', function() {
+        $('#learning-mastery-value').text($(this).val());
+      });
+      $('#work-efficiency').on('input', function() {
+        $('#work-efficiency-value').text($(this).val());
+      });
+      $('#health-sleep-quality').on('input', function() {
+        $('#health-sleep-quality-value').text($(this).val());
+      });
+      $('#health-energy').on('input', function() {
+        $('#health-energy-value').text($(this).val());
+      });
+      $('#mood-score').on('input', function() {
+        $('#mood-score-display').text($(this).val());
+      });
+      $('#mood-stress').on('input', function() {
+        $('#mood-stress-value').text($(this).val());
+      });
+
+      // ===== 心情关键词选择（多选切换） =====
+      $('#mood-keywords').on('click', '.mood-keyword-tag', function() {
+        if ($(this).hasClass('bg-primary/15')) {
+          $(this).removeClass('bg-primary/15 text-primary').addClass('bg-surface-container text-on-surface-variant');
+        } else {
+          $(this).addClass('bg-primary/15 text-primary').removeClass('bg-surface-container text-on-surface-variant');
+        }
+      });
+
+      // ===== 保存按钮 =====
+      $('#btn-save').on('click', function() {
+        // 模拟保存成功，跳转到记录详情页
+        // 实际实现需：收集所有表单数据 → POST /api/v1/records → 获取 record_id → 跳转
+        console.log('保存记录：收集表单数据并提交到后端');
+        window.location.href = 'record-detail.html?id=record_new_001';
+      });
+
+      // ===== 取消按钮 =====
+      $('#btn-cancel').on('click', function() {
+        // 检查是否有未保存改动，弹出确认弹窗
+        $('#modal-discard').removeClass('hidden');
+      });
+
+      // ===== 放弃确认弹窗 =====
+      $('#btn-discard-confirm').on('click', function() {
+        window.location.href = 'records.html';
+      });
+      $('#btn-discard-cancel').on('click', function() {
+        $('#modal-discard').addClass('hidden');
+      });
+      // 点击遮罩关闭弹窗
+      $('#modal-discard').on('click', function(e) {
+        if (e.target === this) {
+          $(this).addClass('hidden');
+        }
+      });
+
+      // ===== 返回按钮 =====
+      $('#btn-back').on('click', function() {
+        // 同取消逻辑：检查未保存改动
+        $('#modal-discard').removeClass('hidden');
+      });
+
+    });
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

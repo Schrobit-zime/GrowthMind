@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-primary:              #7C5CFF;
+      --color-primary-container:    rgba(124,92,255,0.15);
+      --color-on-primary:           #ffffff;
+      --color-accent:               #69E7FF;
+      --color-accent-container:     rgba(105,231,255,0.12);
+      --color-background:                 #070A14;
+      --color-surface-container-lowest:   rgba(255,255,255,0.03);
+      --color-surface:                    rgba(255,255,255,0.05);
+      --color-surface-container:          rgba(255,255,255,0.08);
+      --color-surface-container-high:     rgba(255,255,255,0.12);
+      --color-surface-container-highest:  rgba(255,255,255,0.16);
+      --color-on-surface:           #F7FAFF;
+      --color-on-surface-variant:   #9AA7C7;
+      --color-success:  #62FAD3;
+      --color-error:    #FF6B7A;
+      --color-warning:  #F5A623;
+      --color-outline:          rgba(255,255,255,0.12);
+      --color-outline-variant:  rgba(255,255,255,0.06);
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      --shadow-card:   0 2px 12px rgba(0,0,0,0.35);
+      --shadow-float:  0 10px 30px rgba(0,0,0,0.45);
+      --shadow-dialog: 0 25px 60px rgba(0,0,0,0.55);
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+    /* 打字机动画 */
+    @keyframes typewriter-cursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .typing-cursor::after {
+      content: '▌';
+      animation: typewriter-cursor 1s infinite;
+      color: var(--color-primary);
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .analysis-block {
+      animation: fadeInUp 0.5s ease-out both;
+    }
+    .analysis-block:nth-child(1) { animation-delay: 0.1s; }
+    .analysis-block:nth-child(2) { animation-delay: 0.3s; }
+    .analysis-block:nth-child(3) { animation-delay: 0.5s; }
+  </style>
+
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans min-h-screen">
+
+  <!-- 顶部导航栏 -->
+  <header class="sticky top-0 z-50 h-16 flex items-center justify-between px-6 border-b border-outline-variant/30 bg-background/80 backdrop-blur-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+        <i data-lucide="brain" class="w-4.5 h-4.5 text-white"></i>
+      </div>
+      <span class="font-bold text-lg tracking-tight">GrowthMind</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <select class="admin-only hidden bg-surface-container border-none rounded-lg px-3 py-1.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30">
+        <option value="">我的视角</option>
+        <option value="user_1">被监督用户：张三</option>
+        <option value="user_2">被监督用户：李四</option>
+      </select>
+      <div class="relative" id="avatar-menu-trigger">
+        <button class="w-8 h-8 rounded-full bg-primary-container text-primary font-semibold text-sm flex items-center justify-center hover:ring-2 hover:ring-primary/40 transition-all">初</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex" style="height: calc(100vh - 4rem)">
+    <!-- 侧边栏 -->
+    <aside class="w-56 shrink-0 overflow-y-auto border-r border-outline-variant/30 bg-background/60 backdrop-blur-lg">
+      <div class="p-3 space-y-0.5">
+        <a href="home.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>仪表盘
+        </a>
+        <a href="records.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="file-text" class="w-4 h-4"></i>记录列表
+        </a>
+        <a href="analysis.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium text-sm" aria-current="page">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>智能分析
+        </a>
+        <a href="goals.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>目标管理
+        </a>
+        <div class="my-2 border-t border-outline-variant/30"></div>
+        <a href="supervise.html" class="admin-only hidden flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>监督面板
+        </a>
+      </div>
+    </aside>
+
+    <!-- @main-content:start -->
+    <main class="flex-1 min-w-0 overflow-y-auto bg-background p-6">
+
+      <!-- 页面标题 -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-on-surface">智能分析</h1>
+        <p class="text-sm text-on-surface-variant mt-1">AI 驱动的成长数据分析与个性化建议</p>
+      </div>
+
+      <!-- 分析配置区 -->
+      <div class="bg-surface rounded-xl shadow-card p-5 mb-6">
+        <h2 class="text-base font-semibold text-on-surface mb-4">分析配置</h2>
+
+        <!-- 时间范围选择器 -->
+        <div class="mb-4">
+          <label class="text-xs font-medium text-on-surface-variant block mb-2">时间范围</label>
+          <div class="flex flex-wrap gap-2" id="time-range-group">
+            <button class="time-range-btn px-4 py-2 rounded-lg text-sm font-medium bg-primary/10 text-primary border border-primary/20 transition-all" data-range="7d">近 7 天</button>
+            <button class="time-range-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-range="30d">近 30 天</button>
+            <button class="time-range-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-range="90d">近 90 天</button>
+            <button class="time-range-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-range="custom">自定义</button>
+          </div>
+          <!-- 自定义日期范围（默认隐藏） -->
+          <div id="custom-date-range" class="hidden mt-3 flex items-center gap-3">
+            <input type="date" id="date-start" class="bg-surface-container border-none rounded-lg px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" value="2025-01-01" />
+            <span class="text-sm text-on-surface-variant">至</span>
+            <input type="date" id="date-end" class="bg-surface-container border-none rounded-lg px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" value="2025-02-15" />
+          </div>
+        </div>
+
+        <!-- 维度多选标签 -->
+        <div class="mb-4">
+          <label class="text-xs font-medium text-on-surface-variant block mb-2">分析维度（可多选）</label>
+          <div class="flex flex-wrap gap-2" id="dimension-group">
+            <button class="dimension-tag px-4 py-2 rounded-lg text-sm font-medium bg-primary/10 text-primary border border-primary/20 transition-all" data-dim="learning">
+              <i data-lucide="book-open" class="w-3.5 h-3.5 inline-block mr-1.5"></i>学习
+            </button>
+            <button class="dimension-tag px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-dim="work">
+              <i data-lucide="briefcase" class="w-3.5 h-3.5 inline-block mr-1.5"></i>工作
+            </button>
+            <button class="dimension-tag px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-dim="life">
+              <i data-lucide="heart" class="w-3.5 h-3.5 inline-block mr-1.5"></i>生活
+            </button>
+            <button class="dimension-tag px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-dim="health">
+              <i data-lucide="activity" class="w-3.5 h-3.5 inline-block mr-1.5"></i>身体
+            </button>
+            <button class="dimension-tag px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-dim="mood">
+              <i data-lucide="smile" class="w-3.5 h-3.5 inline-block mr-1.5"></i>心情
+            </button>
+          </div>
+        </div>
+
+        <!-- 分析类型 -->
+        <div class="mb-5">
+          <label class="text-xs font-medium text-on-surface-variant block mb-2">分析类型</label>
+          <div class="flex flex-wrap gap-2" id="analysis-type-group">
+            <button class="analysis-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-primary/10 text-primary border border-primary/20 transition-all" data-type="trend">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5 inline-block mr-1.5"></i>趋势分析
+            </button>
+            <button class="analysis-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-type="comprehensive">
+              <i data-lucide="pie-chart" class="w-3.5 h-3.5 inline-block mr-1.5"></i>综合评估
+            </button>
+            <button class="analysis-type-btn px-4 py-2 rounded-lg text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-type="suggestion">
+              <i data-lucide="lightbulb" class="w-3.5 h-3.5 inline-block mr-1.5"></i>优化建议
+            </button>
+          </div>
+        </div>
+
+        <!-- 开始分析按钮 -->
+        <button id="btn-start-analysis" class="w-full py-3.5 rounded-xl text-base font-semibold text-on-primary bg-gradient-to-r from-primary to-accent hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-float">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>开始分析
+        </button>
+      </div>
+
+      <!-- 前置校验提示区域（默认隐藏） -->
+      <div id="validation-warning" class="hidden bg-warning/10 border border-warning/20 rounded-xl p-5 mb-6">
+        <div class="flex items-start gap-3">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-warning shrink-0 mt-0.5"></i>
+          <div>
+            <h3 class="text-sm font-semibold text-warning mb-1">数据不足，无法分析</h3>
+            <p id="validation-message" class="text-sm text-on-surface-variant">当前时间范围内暂无足够的记录数据，请先<a href="record-form.html" class="text-primary hover:underline font-medium">添加记录</a>后再进行分析。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分析结果区（流式输出效果） -->
+      <div id="analysis-result" class="bg-surface rounded-xl shadow-card p-6 mb-6">
+        <div class="flex items-center gap-2 mb-5">
+          <div class="w-6 h-6 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-white"></i>
+          </div>
+          <h2 class="text-base font-semibold text-on-surface">分析结果</h2>
+          <span class="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-sm">近 7 天 · 学习</span>
+        </div>
+
+        <!-- 趋势解读段落 -->
+        <div class="analysis-block mb-5" id="block-trend">
+          <div class="flex items-center gap-2 mb-3">
+            <i data-lucide="trending-up" class="w-4 h-4 text-accent"></i>
+            <h3 class="text-sm font-semibold text-on-surface">📈 趋势解读</h3>
+          </div>
+          <div class="text-sm text-on-surface-variant leading-relaxed space-y-2">
+            <p>根据近 7 天的学习数据，你的学习时长呈现<strong class="text-on-surface font-medium">稳步上升趋势</strong>。从第 1 天的 45 分钟增长到第 7 天的 90 分钟，日均学习时长达到 <strong class="text-on-surface font-medium">68 分钟</strong>，较上一周期（前 7 天）提升了 <span class="text-success font-semibold">+23%</span>。</p>
+            <p>学习内容覆盖了<strong class="text-on-surface font-medium">编程技术</strong>（占比 45%）、<strong class="text-on-surface font-medium">英语阅读</strong>（占比 30%）和<strong class="text-on-surface font-medium">产品设计</strong>（占比 25%）三个方向。其中编程技术的掌握度评分从 3.2 提升至 4.1（满分 5 分），进步显著。</p>
+            <p>值得注意的是，周末（第 6-7 天）的学习时长明显高于工作日，建议适当平衡每日学习负荷，避免周末过度集中导致疲劳。</p>
+          </div>
+        </div>
+
+        <!-- 状态评估段落 -->
+        <div class="analysis-block mb-5" id="block-assessment">
+          <div class="flex items-center gap-2 mb-3">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-primary"></i>
+            <h3 class="text-sm font-semibold text-on-surface">📊 状态评估</h3>
+          </div>
+          <div class="text-sm text-on-surface-variant leading-relaxed space-y-2">
+            <p>综合评估当前学习状态：<span class="text-success font-semibold">良好（B+ 级）</span>。你的学习投入度和知识掌握度均处于健康区间，但仍有优化空间。</p>
+            <p><strong class="text-on-surface font-medium">优势方面：</strong></p>
+            <ul class="list-disc list-inside space-y-1 pl-1">
+              <li>学习持续性优秀，连续 7 天保持每日学习记录</li>
+              <li>内容多样性合理，避免了单一领域的知识疲劳</li>
+              <li>掌握度评分稳步提升，学习方法有效</li>
+            </ul>
+            <p class="mt-2"><strong class="text-on-surface font-medium">待改进方面：</strong></p>
+            <ul class="list-disc list-inside space-y-1 pl-1">
+              <li>工作日学习时长波动较大（标准差 18 分钟），建议设定每日最低学习时长</li>
+              <li>英语阅读的掌握度评分（3.5）低于其他方向，可能需要调整学习方法</li>
+              <li>缺少学习笔记的深度总结，知识内化程度有待加强</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 优化建议段落 -->
+        <div class="analysis-block" id="block-suggestion">
+          <div class="flex items-center gap-2 mb-3">
+            <i data-lucide="lightbulb" class="w-4 h-4 text-warning"></i>
+            <h3 class="text-sm font-semibold text-on-surface">💡 优化建议</h3>
+          </div>
+          <div class="text-sm text-on-surface-variant leading-relaxed space-y-2">
+            <p><strong class="text-on-surface font-medium">1. 设定每日最低学习时长目标</strong><br/>建议将工作日每日最低学习时长设定为 45 分钟，减少日间波动，建立稳定的学习节奏。可在<a href="goals.html" class="text-primary hover:underline">目标管理</a>中创建"每日学习 45 分钟"目标进行追踪。</p>
+            <p><strong class="text-on-surface font-medium">2. 优化英语学习方法</strong><br/>当前英语阅读掌握度偏低，建议尝试"精读 + 泛读"结合策略：每天 20 分钟精读（查词、做笔记）+ 10 分钟泛读（保持语感）。推荐使用间隔重复工具辅助词汇记忆。</p>
+            <p><strong class="text-on-surface font-medium">3. 增加学习笔记深度</strong><br/>建议每次学习后花 5 分钟撰写结构化笔记（要点总结 + 疑问记录 + 行动计划），提升知识内化效率。可使用"学习打卡"快捷模板快速记录。</p>
+            <p><strong class="text-on-surface font-medium">4. 下周重点关注</strong><br/>建议下周将英语阅读作为重点突破方向，同时保持编程技术的优势。可考虑加入学习社群或寻找学习伙伴，通过外部监督提升持续性。</p>
+          </div>
+        </div>
+
+        <!-- 导出按钮 -->
+        <div class="mt-6 pt-4 border-t border-outline-variant/30 flex justify-end">
+          <button id="btn-export-analysis" class="bg-surface-container text-on-surface-variant px-4 py-2 rounded-lg text-sm font-medium hover:bg-surface-container-high hover:text-on-surface transition-all inline-flex items-center gap-2">
+            <i data-lucide="download" class="w-4 h-4"></i>导出 PDF 报告
+          </button>
+        </div>
+      </div>
+
+      <!-- 历史分析列表 -->
+      <div class="bg-surface rounded-xl shadow-card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-semibold text-on-surface">历史分析</h2>
+          <span class="text-xs text-on-surface-variant">共 3 条</span>
+        </div>
+
+        <div class="space-y-3" id="history-list">
+          <!-- 历史记录-1 -->
+          <div class="history-item bg-surface-container rounded-lg p-4 hover:bg-surface-container-high transition-colors cursor-pointer" data-analysis-id="hist-001">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-primary/15 text-primary">趋势分析</span>
+                <span class="text-xs text-on-surface-variant">2025-02-14 09:30</span>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/50"></i>
+            </div>
+            <div class="flex flex-wrap gap-1.5 mb-2">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">近 30 天</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">学习</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">工作</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">心情</span>
+            </div>
+            <p class="text-sm text-on-surface-variant line-clamp-2">学习时长持续增长（+18%），工作效率稳定在较高水平，心情评分整体向好。建议继续保持当前节奏，适当增加身体锻炼维度…</p>
+          </div>
+
+          <!-- 历史记录-2 -->
+          <div class="history-item bg-surface-container rounded-lg p-4 hover:bg-surface-container-high transition-colors cursor-pointer" data-analysis-id="hist-002">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-accent/15 text-accent">综合评估</span>
+                <span class="text-xs text-on-surface-variant">2025-02-07 14:15</span>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/50"></i>
+            </div>
+            <div class="flex flex-wrap gap-1.5 mb-2">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">近 7 天</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">学习</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">工作</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">生活</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">身体</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">心情</span>
+            </div>
+            <p class="text-sm text-on-surface-variant line-clamp-2">五维综合评分 B+，学习与工作维度表现突出，身体维度略有下滑（睡眠质量下降）。建议关注作息规律，增加运动频次…</p>
+          </div>
+
+          <!-- 历史记录-3 -->
+          <div class="history-item bg-surface-container rounded-lg p-4 hover:bg-surface-container-high transition-colors cursor-pointer" data-analysis-id="hist-003">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-warning/15 text-warning">优化建议</span>
+                <span class="text-xs text-on-surface-variant">2025-01-28 10:45</span>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/50"></i>
+            </div>
+            <div class="flex flex-wrap gap-1.5 mb-2">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">近 90 天</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">工作</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-surface-container-high text-on-surface-variant">生活</span>
+            </div>
+            <p class="text-sm text-on-surface-variant line-clamp-2">工作项目推进效率有待提升，建议采用番茄工作法分段推进。生活作息逐渐规律，继续保持早睡早起习惯…</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+    <!-- @main-content:end -->
+  </div>
+
+  <!-- 头像下拉菜单 -->
+  <div id="avatar-menu" class="hidden absolute right-6 top-14 z-50 w-48 bg-surface-container-highest backdrop-blur-xl border border-outline-variant/30 rounded-xl shadow-dialog p-1.5">
+    <a href="gateway.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="cpu" class="w-4 h-4"></i>模型网关
+    </a>
+    <a href="login.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="log-out" class="w-4 h-4"></i>退出登录
+    </a>
+  </div>
+
+  <script>
+    $(function() {
+      // 头像菜单切换
+      $('#avatar-menu-trigger').on('click', function(e) {
+        e.stopPropagation();
+        $('#avatar-menu').toggleClass('hidden');
+      });
+      $(document).on('click', function() {
+        $('#avatar-menu').addClass('hidden');
+      });
+
+      // 管理员功能可见性
+      $('.admin-only').removeClass('hidden');
+
+      // ===== 时间范围选择器 =====
+      $('#time-range-group').on('click', '.time-range-btn', function() {
+        var range = $(this).data('range');
+        $('#time-range-group .time-range-btn').removeClass('bg-primary/10 text-primary border-primary/20')
+          .addClass('bg-surface-container text-on-surface-variant');
+        $(this).removeClass('bg-surface-container text-on-surface-variant')
+          .addClass('bg-primary/10 text-primary border-primary/20');
+
+        // 自定义日期范围显示/隐藏
+        if (range === 'custom') {
+          $('#custom-date-range').removeClass('hidden');
+        } else {
+          $('#custom-date-range').addClass('hidden');
+        }
+      });
+
+      // ===== 维度多选标签 =====
+      $('#dimension-group').on('click', '.dimension-tag', function() {
+        $(this).toggleClass('bg-primary/10 text-primary border-primary/20 bg-surface-container text-on-surface-variant');
+        // 确保至少选中一个维度
+        if ($('#dimension-group .dimension-tag.bg-primary\\/10').length === 0) {
+          $(this).addClass('bg-primary/10 text-primary border-primary/20');
+          $(this).removeClass('bg-surface-container text-on-surface-variant');
+        }
+      });
+
+      // ===== 分析类型选择 =====
+      $('#analysis-type-group').on('click', '.analysis-type-btn', function() {
+        $('#analysis-type-group .analysis-type-btn').removeClass('bg-primary/10 text-primary border-primary/20')
+          .addClass('bg-surface-container text-on-surface-variant');
+        $(this).removeClass('bg-surface-container text-on-surface-variant')
+          .addClass('bg-primary/10 text-primary border-primary/20');
+      });
+
+      // ===== 开始分析按钮 =====
+      $('#btn-start-analysis').on('click', function() {
+        // 获取选中的时间范围
+        var activeRange = $('#time-range-group .time-range-btn.bg-primary\\/10').data('range') || '7d';
+        // 获取选中的维度
+        var selectedDims = [];
+        $('#dimension-group .dimension-tag.bg-primary\\/10').each(function() {
+          selectedDims.push($(this).data('dim'));
+        });
+        // 获取选中的分析类型
+        var activeType = $('#analysis-type-group .analysis-type-btn.bg-primary\\/10').data('type') || 'trend';
+
+        console.log('开始分析 - 时间范围:', activeRange, '维度:', selectedDims, '类型:', activeType);
+
+        // 模拟前置校验：如果选中了"身体"维度但无数据，显示警告
+        // 实际项目中应调用 API 校验数据是否充足
+        if (selectedDims.length === 0) {
+          $('#validation-warning').removeClass('hidden');
+          $('#validation-message').text('请至少选择一个分析维度。');
+          return;
+        }
+
+        // 隐藏校验警告
+        $('#validation-warning').addClass('hidden');
+
+        // 模拟流式输出效果：显示加载状态，然后逐段展示
+        // 实际项目中应通过 SSE 接收 LLM 流式输出并逐段渲染
+        var $result = $('#analysis-result');
+        $result.find('.analysis-block').css('opacity', '0');
+
+        // 模拟打字机效果 - 逐段显示
+        // 实际项目中：监听 SSE 事件，每收到一段完整内容就追加一个 analysis-block
+        setTimeout(function() {
+          $('#block-trend').css('opacity', '1').addClass('typing-cursor');
+        }, 600);
+
+        setTimeout(function() {
+          $('#block-trend').removeClass('typing-cursor');
+          $('#block-assessment').css('opacity', '1').addClass('typing-cursor');
+        }, 1800);
+
+        setTimeout(function() {
+          $('#block-assessment').removeClass('typing-cursor');
+          $('#block-suggestion').css('opacity', '1').addClass('typing-cursor');
+        }, 3200);
+
+        setTimeout(function() {
+          $('#block-suggestion').removeClass('typing-cursor');
+        }, 4400);
+
+        // 滚动到分析结果区
+        $('html, body').animate({
+          scrollTop: $result.offset().top - 80
+        }, 400);
+      });
+
+      // ===== 历史分析项点击 =====
+      $('#history-list').on('click', '.history-item', function() {
+        var analysisId = $(this).data('analysis-id');
+        console.log('加载历史分析结果:', analysisId);
+        // 实际项目中应：
+        // 1. 根据 analysis_id 请求历史分析详情 API
+        // 2. 将返回的分析内容渲染到 #analysis-result 区域
+        // 3. 滚动到分析结果区
+        $('html, body').animate({
+          scrollTop: $('#analysis-result').offset().top - 80
+        }, 400);
+      });
+
+      // ===== 导出分析按钮 =====
+      $('#btn-export-analysis').on('click', function() {
+        console.log('导出 PDF 报告');
+        // 实际项目中应：
+        // 1. 调用导出 API（GET /api/v1/export?type=pdf&analysis_id=xxx）
+        // 2. 接收 PDF 文件流并触发浏览器下载
+        // 3. 显示导出进度提示
+      });
+    });
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 === */
+      --color-primary:              #7C5CFF;
+      --color-primary-container:    rgba(124,92,255,0.15);
+      --color-on-primary:           #ffffff;
+      /* === 强调色 === */
+      --color-accent:               #69E7FF;
+      --color-accent-container:     rgba(105,231,255,0.12);
+      /* === 背景 / 表面（毛玻璃层级） === */
+      --color-background:                 #070A14;
+      --color-surface-container-lowest:   rgba(255,255,255,0.03);
+      --color-surface:                    rgba(255,255,255,0.05);
+      --color-surface-container:          rgba(255,255,255,0.08);
+      --color-surface-container-high:     rgba(255,255,255,0.12);
+      --color-surface-container-highest:  rgba(255,255,255,0.16);
+      /* === 文字 === */
+      --color-on-surface:           #F7FAFF;
+      --color-on-surface-variant:   #9AA7C7;
+      /* === 功能色 === */
+      --color-success:  #62FAD3;
+      --color-error:    #FF6B7A;
+      --color-warning:  #F5A623;
+      /* === 边框 === */
+      --color-outline:          rgba(255,255,255,0.12);
+      --color-outline-variant:  rgba(255,255,255,0.06);
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 2px 12px rgba(0,0,0,0.35);
+      --shadow-float:  0 10px 30px rgba(0,0,0,0.45);
+      --shadow-dialog: 0 25px 60px rgba(0,0,0,0.55);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans min-h-screen">
+
+  <!-- 简化顶栏：返回按钮 + 用户名 + 提醒规则按钮 + 发送提醒按钮 -->
+  <header class="sticky top-0 z-50 h-16 flex items-center justify-between px-6 border-b border-outline-variant/30 bg-background/80 backdrop-blur-xl">
+    <div class="flex items-center gap-4">
+      <button id="btn-back" class="flex items-center gap-1.5 text-on-surface-variant hover:text-on-surface transition-colors">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span class="text-sm font-medium">返回</span>
+      </button>
+      <div class="w-px h-6 bg-outline-variant/40"></div>
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-primary-container text-primary font-semibold text-sm flex items-center justify-center">张</div>
+        <span class="font-semibold text-base">张三</span>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-success/15 text-success">活跃</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="btn-reminder-rules" class="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all">
+        <i data-lucide="bell-ring" class="w-4 h-4"></i>提醒规则
+      </button>
+      <button id="btn-send-reminder" class="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-primary text-on-primary hover:opacity-90 active:scale-[0.98] transition-all">
+        <i data-lucide="send" class="w-4 h-4"></i>发送提醒
+      </button>
+    </div>
+  </header>
+
+  <!-- @main-content:start -->
+  <main class="min-h-[calc(100vh-4rem)] overflow-y-auto bg-background p-6">
+
+    <!-- Tab 切换区 -->
+    <div class="mb-6">
+      <div id="tab-nav" class="flex items-center gap-1 bg-surface-container rounded-lg p-1 w-fit">
+        <button class="tab-btn px-4 py-2 rounded-md text-sm font-medium bg-primary text-on-primary transition-all" data-tab="overview">
+          <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 inline-block mr-1.5"></i>概览
+        </button>
+        <button class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-tab="records">
+          <i data-lucide="file-text" class="w-3.5 h-3.5 inline-block mr-1.5"></i>记录
+        </button>
+        <button class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-tab="goals">
+          <i data-lucide="target" class="w-3.5 h-3.5 inline-block mr-1.5"></i>目标
+        </button>
+        <button class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-tab="analysis">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 inline-block mr-1.5"></i>分析
+        </button>
+      </div>
+    </div>
+
+    <!-- ========== Tab 内容：概览（默认展示） ========== -->
+    <div id="tab-overview" class="tab-content">
+
+      <!-- 今日概览卡片行 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- 卡片-学习 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:shadow-float transition-shadow cursor-pointer" id="card-learning">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-on-surface-variant uppercase tracking-wide">学习</span>
+            <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <i data-lucide="book-open" class="w-4 h-4 text-primary"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-on-surface">2.5<span class="text-sm font-normal text-on-surface-variant ml-1">小时</span></div>
+          <div class="flex items-center gap-1.5 mt-2">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-success"></i>
+            <span class="text-xs text-success font-medium">+12%</span>
+            <span class="text-xs text-on-surface-variant">较昨日</span>
+          </div>
+        </div>
+
+        <!-- 卡片-工作 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:shadow-float transition-shadow cursor-pointer" id="card-work">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-on-surface-variant uppercase tracking-wide">工作</span>
+            <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+              <i data-lucide="briefcase" class="w-4 h-4 text-accent"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-on-surface">8<span class="text-sm font-normal text-on-surface-variant ml-1">项任务</span></div>
+          <div class="flex items-center gap-1.5 mt-2">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm text-xs font-medium bg-success/15 text-success">6 已完成</span>
+            <span class="text-xs text-on-surface-variant">2 进行中</span>
+          </div>
+        </div>
+
+        <!-- 卡片-心情 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:shadow-float transition-shadow cursor-pointer" id="card-mood">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-on-surface-variant uppercase tracking-wide">心情</span>
+            <div class="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+              <i data-lucide="smile" class="w-4 h-4 text-warning"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-on-surface">7.8<span class="text-sm font-normal text-on-surface-variant ml-1">/ 10</span></div>
+          <div class="flex items-center gap-1.5 mt-2">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-success"></i>
+            <span class="text-xs text-success font-medium">+0.5</span>
+            <span class="text-xs text-on-surface-variant">较昨日</span>
+          </div>
+        </div>
+
+        <!-- 卡片-身体 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:shadow-float transition-shadow cursor-pointer" id="card-health">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-on-surface-variant uppercase tracking-wide">身体</span>
+            <div class="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+              <i data-lucide="heart" class="w-4 h-4 text-success"></i>
+            </div>
+          </div>
+          <div class="text-2xl font-bold text-on-surface">7.5<span class="text-sm font-normal text-on-surface-variant ml-1">小时睡眠</span></div>
+          <div class="flex items-center gap-1.5 mt-2">
+            <i data-lucide="minus" class="w-3.5 h-3.5 text-on-surface-variant"></i>
+            <span class="text-xs text-on-surface-variant">与昨日持平</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 趋势折线图 + 目标进度 两栏 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- 趋势折线图 SVG -->
+        <div class="lg:col-span-2 bg-surface rounded-xl shadow-card p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold text-on-surface">近 7 天心情趋势</h3>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-primary"></span>
+              <span class="text-xs text-on-surface-variant">心情评分</span>
+            </div>
+          </div>
+          <div class="w-full overflow-x-auto">
+            <svg viewBox="0 0 600 220" class="w-full" style="min-width: 400px;">
+              <!-- 网格线 -->
+              <line x1="50" y1="20" x2="580" y2="20" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="50" y1="60" x2="580" y2="60" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="50" y1="100" x2="580" y2="100" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="50" y1="140" x2="580" y2="140" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="50" y1="180" x2="580" y2="180" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <!-- Y轴标签 -->
+              <text x="40" y="24" text-anchor="end" class="fill-on-surface-variant" font-size="10" fill="#9AA7C7">10</text>
+              <text x="40" y="64" text-anchor="end" class="fill-on-surface-variant" font-size="10" fill="#9AA7C7">8</text>
+              <text x="40" y="104" text-anchor="end" class="fill-on-surface-variant" font-size="10" fill="#9AA7C7">6</text>
+              <text x="40" y="144" text-anchor="end" class="fill-on-surface-variant" font-size="10" fill="#9AA7C7">4</text>
+              <text x="40" y="184" text-anchor="end" class="fill-on-surface-variant" font-size="10" fill="#9AA7C7">2</text>
+              <!-- 折线区域填充 -->
+              <defs>
+                <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#7C5CFF" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#7C5CFF" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <!-- Mock数据：近7天心情评分 [6.5, 7.0, 7.8, 6.2, 8.0, 7.5, 7.8] -->
+              <!-- 数据点坐标映射：y = 180 - (score-2)/8*160 -->
+              <!-- day1:6.5→y=90, day2:7.0→y=80, day3:7.8→y=64, day4:6.2→y=96, day5:8.0→y=60, day6:7.5→y=70, day7:7.8→y=64 -->
+              <polygon points="50,180 120,90 200,80 280,64 360,96 440,60 520,70 580,64 580,180" fill="url(#lineGrad)"/>
+              <polyline points="120,90 200,80 280,64 360,96 440,60 520,70 580,64" fill="none" stroke="#7C5CFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- 数据点 -->
+              <circle cx="120" cy="90" r="4" fill="#7C5CFF" stroke="#070A14" stroke-width="2"/>
+              <circle cx="200" cy="80" r="4" fill="#7C5CFF" stroke="#070A14" stroke-width="2"/>
+              <circle cx="280" cy="64" r="4" fill="#7C5CFF" stroke="#070A14" stroke-width="2"/>
+              <circle cx="360" cy="96" r="4" fill="#7C5CFF" stroke="#070A14" stroke-width="2"/>
+              <circle cx="440" cy="60" r="4" fill="#7C5CFF" stroke="#070A14" stroke-width="2"/>
+              <circle cx="520" cy="70" r="4" fill="#7C5CFF" stroke="#070A14" stroke-width="2"/>
+              <circle cx="580" cy="64" r="5" fill="#69E7FF" stroke="#070A14" stroke-width="2"/>
+              <!-- X轴标签 -->
+              <text x="120" y="200" text-anchor="middle" font-size="10" fill="#9AA7C7">周一</text>
+              <text x="200" y="200" text-anchor="middle" font-size="10" fill="#9AA7C7">周二</text>
+              <text x="280" y="200" text-anchor="middle" font-size="10" fill="#9AA7C7">周三</text>
+              <text x="360" y="200" text-anchor="middle" font-size="10" fill="#9AA7C7">周四</text>
+              <text x="440" y="200" text-anchor="middle" font-size="10" fill="#9AA7C7">周五</text>
+              <text x="520" y="200" text-anchor="middle" font-size="10" fill="#9AA7C7">周六</text>
+              <text x="580" y="200" text-anchor="middle" font-size="10" fill="#69E7FF">今日</text>
+              <!-- 数值标注 -->
+              <text x="120" y="82" text-anchor="middle" font-size="10" fill="#F7FAFF">6.5</text>
+              <text x="200" y="72" text-anchor="middle" font-size="10" fill="#F7FAFF">7.0</text>
+              <text x="280" y="56" text-anchor="middle" font-size="10" fill="#F7FAFF">7.8</text>
+              <text x="360" y="88" text-anchor="middle" font-size="10" fill="#F7FAFF">6.2</text>
+              <text x="440" y="52" text-anchor="middle" font-size="10" fill="#F7FAFF">8.0</text>
+              <text x="520" y="62" text-anchor="middle" font-size="10" fill="#F7FAFF">7.5</text>
+              <text x="580" y="54" text-anchor="middle" font-size="11" fill="#69E7FF" font-weight="600">7.8</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 目标进度 -->
+        <div class="bg-surface rounded-xl shadow-card p-5">
+          <h3 class="text-base font-semibold text-on-surface mb-4">目标进度</h3>
+          <div class="space-y-5">
+            <!-- 目标-学习 -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-sm font-medium text-on-surface">每日学习 2 小时</span>
+                <span class="text-xs text-on-surface-variant">80%</span>
+              </div>
+              <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+                <div class="h-full bg-primary rounded-full transition-all" style="width: 80%;"></div>
+              </div>
+              <span class="text-xs text-on-surface-variant mt-1 block">目标：2h / 今日：1.6h</span>
+            </div>
+            <!-- 目标-工作 -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-sm font-medium text-on-surface">每周完成 40 项任务</span>
+                <span class="text-xs text-on-surface-variant">65%</span>
+              </div>
+              <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+                <div class="h-full bg-accent rounded-full transition-all" style="width: 65%;"></div>
+              </div>
+              <span class="text-xs text-on-surface-variant mt-1 block">目标：40 项 / 本周：26 项</span>
+            </div>
+            <!-- 目标-运动 -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-sm font-medium text-on-surface">每周运动 3 次</span>
+                <span class="text-xs text-on-surface-variant">33%</span>
+              </div>
+              <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+                <div class="h-full bg-success rounded-full transition-all" style="width: 33%;"></div>
+              </div>
+              <span class="text-xs text-on-surface-variant mt-1 block">目标：3 次 / 本周：1 次</span>
+            </div>
+            <!-- 目标-心情 -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-sm font-medium text-on-surface">心情评分保持 7+</span>
+                <span class="text-xs text-on-surface-variant">100%</span>
+              </div>
+              <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+                <div class="h-full bg-warning rounded-full transition-all" style="width: 100%;"></div>
+              </div>
+              <span class="text-xs text-on-surface-variant mt-1 block">目标：≥7 / 本周均值：7.5 ✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 最近记录摘要 -->
+      <div class="bg-surface rounded-xl shadow-card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-semibold text-on-surface">最近记录</h3>
+          <button id="btn-view-all-records" class="text-sm text-primary font-medium hover:underline">查看全部</button>
+        </div>
+        <div class="divide-y divide-outline-variant/30">
+          <!-- 列表-记录1 -->
+          <div class="flex items-center gap-4 py-3 hover:bg-surface-container/50 transition-colors rounded-lg px-2 -mx-2 cursor-pointer" id="recent-record-1">
+            <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <i data-lucide="book-open" class="w-4 h-4 text-primary"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-on-surface truncate">学习打卡 · React 源码阅读</div>
+              <div class="text-xs text-on-surface-variant mt-0.5">今日 14:30 · 学习 2.5h · 掌握度 85%</div>
+            </div>
+            <span class="text-xs text-on-surface-variant shrink-0">2 小时前</span>
+          </div>
+          <!-- 列表-记录2 -->
+          <div class="flex items-center gap-4 py-3 hover:bg-surface-container/50 transition-colors rounded-lg px-2 -mx-2 cursor-pointer" id="recent-record-2">
+            <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+              <i data-lucide="briefcase" class="w-4 h-4 text-accent"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-on-surface truncate">工作总结 · 项目周报提交</div>
+              <div class="text-xs text-on-surface-variant mt-0.5">今日 17:00 · 完成 8 项任务 · 效率 90%</div>
+            </div>
+            <span class="text-xs text-on-surface-variant shrink-0">30 分钟前</span>
+          </div>
+          <!-- 列表-记录3 -->
+          <div class="flex items-center gap-4 py-3 hover:bg-surface-container/50 transition-colors rounded-lg px-2 -mx-2 cursor-pointer" id="recent-record-3">
+            <div class="w-9 h-9 rounded-lg bg-warning/10 flex items-center justify-center shrink-0">
+              <i data-lucide="smile" class="w-4 h-4 text-warning"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-on-surface truncate">心情记录 · 今日心情不错</div>
+              <div class="text-xs text-on-surface-variant mt-0.5">今日 20:00 · 评分 8/10 · 关键词：充实、感恩</div>
+            </div>
+            <span class="text-xs text-on-surface-variant shrink-0">10 分钟前</span>
+          </div>
+          <!-- 列表-记录4 -->
+          <div class="flex items-center gap-4 py-3 hover:bg-surface-container/50 transition-colors rounded-lg px-2 -mx-2 cursor-pointer" id="recent-record-4">
+            <div class="w-9 h-9 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
+              <i data-lucide="heart" class="w-4 h-4 text-success"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-on-surface truncate">身体记录 · 睡眠质量良好</div>
+              <div class="text-xs text-on-surface-variant mt-0.5">昨日 22:30 · 睡眠 7.5h · 精力 8/10</div>
+            </div>
+            <span class="text-xs text-on-surface-variant shrink-0">昨天</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========== Tab 内容：记录（默认隐藏） ========== -->
+    <div id="tab-records" class="tab-content hidden">
+      <div class="bg-surface rounded-xl shadow-card p-8 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-surface-container flex items-center justify-center">
+          <i data-lucide="file-text" class="w-8 h-8 text-on-surface-variant"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-on-surface mb-2">张三的记录列表</h3>
+        <p class="text-sm text-on-surface-variant max-w-md mx-auto">此 Tab 将展示张三的所有历史记录，支持按时间维度、日期范围和维度标签筛选，包含搜索功能和分页加载。</p>
+      </div>
+    </div>
+
+    <!-- ========== Tab 内容：目标（默认隐藏） ========== -->
+    <div id="tab-goals" class="tab-content hidden">
+      <div class="bg-surface rounded-xl shadow-card p-8 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-surface-container flex items-center justify-center">
+          <i data-lucide="target" class="w-8 h-8 text-on-surface-variant"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-on-surface mb-2">张三的目标管理</h3>
+        <p class="text-sm text-on-surface-variant max-w-md mx-auto">此 Tab 将展示张三的所有成长目标，包含目标概览统计、目标卡片列表（名称/维度/进度条/截止日期/状态），支持新增、编辑和删除操作。</p>
+      </div>
+    </div>
+
+    <!-- ========== Tab 内容：分析（默认隐藏） ========== -->
+    <div id="tab-analysis" class="tab-content hidden">
+      <div class="bg-surface rounded-xl shadow-card p-8 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-surface-container flex items-center justify-center">
+          <i data-lucide="sparkles" class="w-8 h-8 text-on-surface-variant"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-on-surface mb-2">张三的智能分析</h3>
+        <p class="text-sm text-on-surface-variant max-w-md mx-auto">此 Tab 将展示针对张三数据的 AI 智能分析结果，支持按时间范围和维度组合进行流式分析，包含趋势评估、状态分析和优化建议。</p>
+      </div>
+    </div>
+
+    <!-- 发送提醒底部面板 -->
+    <div id="panel-send-reminder" class="hidden fixed inset-0 bg-black/50 flex items-end justify-center z-50">
+      <div class="bg-surface-container-highest backdrop-blur-xl border border-outline-variant/30 rounded-t-2xl w-full max-w-lg p-6 shadow-dialog">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-lg font-semibold text-on-surface">发送提醒</h3>
+          <button id="btn-close-reminder-panel" class="text-on-surface-variant hover:text-on-surface transition-colors">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-on-surface mb-1.5">提醒标题</label>
+            <input id="reminder-title" class="w-full bg-surface-container border-none rounded-md px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" placeholder="请输入提醒标题" value="请及时完成今日记录"/>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-on-surface mb-1.5">提醒内容</label>
+            <textarea id="reminder-content" rows="3" class="w-full bg-surface-container border-none rounded-md px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors resize-none" placeholder="请输入提醒内容">你好张三，注意到你今天还没有完成成长记录，记得抽空记录一下哦！</textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-on-surface mb-1.5">发送方式</label>
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+                <input type="checkbox" checked class="accent-primary"/> 站内通知
+              </label>
+              <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+                <input type="checkbox" checked class="accent-primary"/> 邮件
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 mt-6">
+          <button id="btn-cancel-reminder" class="flex-1 bg-surface-container text-on-surface border-none px-4 py-2.5 rounded-md text-sm font-medium hover:bg-surface-container-high active:scale-[0.98] transition-all">取消</button>
+          <button id="btn-confirm-send" class="flex-1 bg-primary text-on-primary px-4 py-2.5 rounded-md text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+            <i data-lucide="send" class="w-4 h-4"></i>发送
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+  <!-- @main-content:end -->
+
+  <script>
+    $(function() {
+
+      // ========== Tab 切换 ==========
+      $('#tab-nav').on('click', '.tab-btn', function() {
+        var tab = $(this).data('tab');
+
+        // 更新 Tab 按钮样式
+        $('.tab-btn').removeClass('bg-primary text-on-primary')
+                     .addClass('text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high');
+        $(this).addClass('bg-primary text-on-primary')
+               .removeClass('text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high');
+
+        // 切换内容区
+        $('.tab-content').addClass('hidden');
+        $('#tab-' + tab).removeClass('hidden');
+
+        // 重新渲染图标
+        lucide.createIcons();
+      });
+
+      // ========== 返回按钮 ==========
+      $('#btn-back').on('click', function() {
+        window.location.href = 'supervise.html';
+      });
+
+      // ========== 提醒规则按钮 ==========
+      $('#btn-reminder-rules').on('click', function() {
+        window.location.href = 'supervise-rules.html?user_id=zhangsan';
+      });
+
+      // ========== 发送提醒按钮 - 打开底部面板 ==========
+      $('#btn-send-reminder').on('click', function() {
+        $('#panel-send-reminder').removeClass('hidden');
+        lucide.createIcons();
+      });
+
+      // ========== 关闭发送提醒面板 ==========
+      $('#btn-close-reminder-panel, #btn-cancel-reminder').on('click', function() {
+        $('#panel-send-reminder').addClass('hidden');
+      });
+
+      // 点击遮罩关闭
+      $('#panel-send-reminder').on('click', function(e) {
+        if (e.target === this) {
+          $(this).addClass('hidden');
+        }
+      });
+
+      // ========== 确认发送提醒 ==========
+      $('#btn-confirm-send').on('click', function() {
+        // 发送提醒逻辑：
+        // 1. 收集提醒标题、内容和发送方式
+        // 2. 调用 POST /api/v1/notifications/email 发送提醒
+        // 3. 发送成功后关闭面板并显示成功提示
+        console.log('发送提醒：需要调用邮件/通知接口发送提醒给被监督用户');
+        $('#panel-send-reminder').addClass('hidden');
+      });
+
+      // ========== 概览卡片点击跳转 ==========
+      $('#card-learning').on('click', function() {
+        window.location.href = 'records.html?dimension=learning';
+      });
+      $('#card-work').on('click', function() {
+        window.location.href = 'records.html?dimension=work';
+      });
+      $('#card-mood').on('click', function() {
+        window.location.href = 'records.html?dimension=mood';
+      });
+      $('#card-health').on('click', function() {
+        window.location.href = 'records.html?dimension=health';
+      });
+
+      // ========== 查看全部记录 ==========
+      $('#btn-view-all-records').on('click', function() {
+        // 切换到记录 Tab
+        $('#tab-nav .tab-btn[data-tab="records"]').trigger('click');
+      });
+
+      // ========== 最近记录点击跳转详情 ==========
+      $('#recent-record-1').on('click', function() {
+        window.location.href = 'record-detail.html?record_id=rec_001';
+      });
+      $('#recent-record-2').on('click', function() {
+        window.location.href = 'record-detail.html?record_id=rec_002';
+      });
+      $('#recent-record-3').on('click', function() {
+        window.location.href = 'record-detail.html?record_id=rec_003';
+      });
+      $('#recent-record-4').on('click', function() {
+        window.location.href = 'record-detail.html?record_id=rec_004';
+      });
+
+    });
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

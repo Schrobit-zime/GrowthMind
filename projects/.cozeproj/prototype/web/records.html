@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 === */
+      --color-primary:              #7C5CFF;
+      --color-primary-container:    rgba(124,92,255,0.15);
+      --color-on-primary:           #ffffff;
+      /* === 强调色 === */
+      --color-accent:               #69E7FF;
+      --color-accent-container:     rgba(105,231,255,0.12);
+      /* === 背景 / 表面（毛玻璃层级） === */
+      --color-background:                 #070A14;
+      --color-surface-container-lowest:   rgba(255,255,255,0.03);
+      --color-surface:                    rgba(255,255,255,0.05);
+      --color-surface-container:          rgba(255,255,255,0.08);
+      --color-surface-container-high:     rgba(255,255,255,0.12);
+      --color-surface-container-highest:  rgba(255,255,255,0.16);
+      /* === 文字 === */
+      --color-on-surface:           #F7FAFF;
+      --color-on-surface-variant:   #9AA7C7;
+      /* === 功能色 === */
+      --color-success:  #62FAD3;
+      --color-error:    #FF6B7A;
+      --color-warning:  #F5A623;
+      /* === 边框 === */
+      --color-outline:          rgba(255,255,255,0.12);
+      --color-outline-variant:  rgba(255,255,255,0.06);
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 2px 12px rgba(0,0,0,0.35);
+      --shadow-float:  0 10px 30px rgba(0,0,0,0.45);
+      --shadow-dialog: 0 25px 60px rgba(0,0,0,0.55);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <!-- 图片兜底 -->
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans min-h-screen">
+
+  <!-- @nav:start 导航组件 -->
+  <!-- 顶部导航栏 -->
+  <header class="sticky top-0 z-50 h-16 flex items-center justify-between px-6 border-b border-outline-variant/30 bg-background/80 backdrop-blur-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+        <i data-lucide="brain" class="w-4.5 h-4.5 text-white"></i>
+      </div>
+      <span class="font-bold text-lg tracking-tight">GrowthMind</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- 管理员视角切换器（仅管理员可见，普通用户隐藏） -->
+      <select class="admin-only hidden bg-surface-container border-none rounded-lg px-3 py-1.5 text-sm text-on-surface focus:ring-2 focus:ring-primary/30">
+        <option value="">我的视角</option>
+        <option value="user_1">被监督用户：张三</option>
+        <option value="user_2">被监督用户：李四</option>
+      </select>
+      <!-- 用户头像 -->
+      <div class="relative" id="avatar-menu-trigger">
+        <button class="w-8 h-8 rounded-full bg-primary-container text-primary font-semibold text-sm flex items-center justify-center hover:ring-2 hover:ring-primary/40 transition-all">初</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex" style="height: calc(100vh - 4rem)">
+    <!-- 侧边栏 -->
+    <aside class="w-56 shrink-0 overflow-y-auto border-r border-outline-variant/30 bg-background/60 backdrop-blur-lg">
+      <div class="p-3 space-y-0.5">
+        <a href="home.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>仪表盘
+        </a>
+        <a href="records.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium text-sm" aria-current="page">
+          <i data-lucide="file-text" class="w-4 h-4"></i>记录列表
+        </a>
+        <a href="analysis.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>智能分析
+        </a>
+        <a href="goals.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="target" class="w-4 h-4"></i>目标管理
+        </a>
+        <div class="my-2 border-t border-outline-variant/30"></div>
+        <a href="supervise.html" class="admin-only hidden flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-medium text-sm transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>监督面板
+        </a>
+      </div>
+    </aside>
+
+    <!-- @main-content:start -->
+    <main class="flex-1 min-w-0 overflow-y-auto bg-background p-6">
+      <!-- 页面标题 -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-on-surface">记录列表</h1>
+        <p class="text-sm text-on-surface-variant mt-1">浏览、筛选和搜索你的所有成长记录</p>
+      </div>
+
+      <!-- 筛选栏：时间维度标签 -->
+      <div class="flex flex-wrap items-center gap-2 mb-4" id="filter-type">
+        <button class="filter-tag px-3 py-1.5 rounded-full text-sm font-medium bg-primary/15 text-primary transition-all active:scale-[0.97]" data-type="all" id="filter-all">全部</button>
+        <button class="filter-tag px-3 py-1.5 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.97]" data-type="daily">日报</button>
+        <button class="filter-tag px-3 py-1.5 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.97]" data-type="weekly">周报</button>
+        <button class="filter-tag px-3 py-1.5 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.97]" data-type="monthly">月报</button>
+        <button class="filter-tag px-3 py-1.5 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.97]" data-type="annual">年报</button>
+        <button class="filter-tag px-3 py-1.5 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.97]" data-type="morning">早报</button>
+        <button class="filter-tag px-3 py-1.5 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.97]" data-type="noon">午报</button>
+        <button class="filter-tag px-3 py-1.5 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all active:scale-[0.97]" data-type="evening">晚报</button>
+      </div>
+
+      <!-- 日期范围选择器 + 搜索框 -->
+      <div class="flex flex-wrap items-center gap-3 mb-6">
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-on-surface-variant font-medium">日期范围</label>
+          <input type="date" id="date-start" class="bg-surface-container border-none rounded-md px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" value="2025-01-01" />
+          <span class="text-xs text-on-surface-variant">至</span>
+          <input type="date" id="date-end" class="bg-surface-container border-none rounded-md px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" value="2025-06-30" />
+        </div>
+        <div class="flex-1 min-w-[240px] max-w-md relative">
+          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/50"></i>
+          <input type="text" id="search-input" placeholder="搜索记录摘要、目标名称…" class="w-full bg-surface-container border-none rounded-md pl-9 pr-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors" />
+        </div>
+        <span class="text-xs text-on-surface-variant" id="result-count">共 8 条记录</span>
+      </div>
+
+      <!-- 记录卡片列表 -->
+      <div class="space-y-3" id="record-list">
+
+        <!-- 列表-记录1：日报 -->
+        <a href="record-detail.html?id=rec_001" class="block bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-semibold bg-primary/15 text-primary">日报</span>
+                <span class="text-xs text-on-surface-variant">2025-06-15</span>
+                <div class="flex items-center gap-1 ml-1">
+                  <i data-lucide="book-open" class="w-3.5 h-3.5 text-accent"></i>
+                  <i data-lucide="briefcase" class="w-3.5 h-3.5 text-primary"></i>
+                  <i data-lucide="heart" class="w-3.5 h-3.5 text-error"></i>
+                </div>
+              </div>
+              <p class="text-sm text-on-surface leading-relaxed mb-2 line-clamp-2">今日学习 React Server Components 2小时，完成项目核心模块开发，傍晚跑步5公里，整体状态良好。</p>
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1 text-xs text-on-surface-variant">
+                  <i data-lucide="target" class="w-3 h-3"></i>
+                  <span>精通 React 全栈开发</span>
+                </span>
+              </div>
+            </div>
+            <div class="shrink-0 flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="text-sm font-bold text-primary">8</span>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">心情</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/30 shrink-0 mt-2 group-hover:text-primary transition-colors"></i>
+          </div>
+        </a>
+
+        <!-- 列表-记录2：周报 -->
+        <a href="record-detail.html?id=rec_002" class="block bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-semibold bg-accent/15 text-accent">周报</span>
+                <span class="text-xs text-on-surface-variant">2025-06-09 ~ 2025-06-15</span>
+                <div class="flex items-center gap-1 ml-1">
+                  <i data-lucide="book-open" class="w-3.5 h-3.5 text-accent"></i>
+                  <i data-lucide="briefcase" class="w-3.5 h-3.5 text-primary"></i>
+                  <i data-lucide="activity" class="w-3.5 h-3.5 text-success"></i>
+                </div>
+              </div>
+              <p class="text-sm text-on-surface leading-relaxed mb-2 line-clamp-2">本周累计学习18小时，完成3个功能模块开发与代码评审，健身4次，睡眠质量持续改善，整体节奏平稳。</p>
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1 text-xs text-on-surface-variant">
+                  <i data-lucide="target" class="w-3 h-3"></i>
+                  <span>每周学习 ≥ 15 小时</span>
+                </span>
+              </div>
+            </div>
+            <div class="shrink-0 flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
+                <span class="text-sm font-bold text-success">7</span>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">心情</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/30 shrink-0 mt-2 group-hover:text-primary transition-colors"></i>
+          </div>
+        </a>
+
+        <!-- 列表-记录3：月报 -->
+        <a href="record-detail.html?id=rec_003" class="block bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-semibold bg-warning/15 text-warning">月报</span>
+                <span class="text-xs text-on-surface-variant">2025年6月</span>
+                <div class="flex items-center gap-1 ml-1">
+                  <i data-lucide="book-open" class="w-3.5 h-3.5 text-accent"></i>
+                  <i data-lucide="briefcase" class="w-3.5 h-3.5 text-primary"></i>
+                  <i data-lucide="heart" class="w-3.5 h-3.5 text-error"></i>
+                  <i data-lucide="activity" class="w-3.5 h-3.5 text-success"></i>
+                </div>
+              </div>
+              <p class="text-sm text-on-surface leading-relaxed mb-2 line-clamp-2">六月整体进展显著：学习时长突破70小时，完成Next.js全栈项目初版，体重下降2kg，心情均值7.5，开始养成每日冥想习惯。</p>
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1 text-xs text-on-surface-variant">
+                  <i data-lucide="target" class="w-3 h-3"></i>
+                  <span>月减重 2kg</span>
+                </span>
+              </div>
+            </div>
+            <div class="shrink-0 flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="text-sm font-bold text-primary">9</span>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">心情</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/30 shrink-0 mt-2 group-hover:text-primary transition-colors"></i>
+          </div>
+        </a>
+
+        <!-- 列表-记录4：早报 -->
+        <a href="record-detail.html?id=rec_004" class="block bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-semibold bg-success/15 text-success">早报</span>
+                <span class="text-xs text-on-surface-variant">2025-06-16 07:30</span>
+                <div class="flex items-center gap-1 ml-1">
+                  <i data-lucide="sun" class="w-3.5 h-3.5 text-warning"></i>
+                  <i data-lucide="heart" class="w-3.5 h-3.5 text-error"></i>
+                </div>
+              </div>
+              <p class="text-sm text-on-surface leading-relaxed mb-2 line-clamp-2">清晨6点起床，睡眠质量评分8/10，精力充沛。今日计划：上午完成API对接，下午团队协作会议，晚上健身+阅读。</p>
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1 text-xs text-on-surface-variant">
+                  <i data-lucide="target" class="w-3 h-3"></i>
+                  <span>连续早起 30 天</span>
+                </span>
+              </div>
+            </div>
+            <div class="shrink-0 flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
+                <span class="text-sm font-bold text-success">8</span>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">心情</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/30 shrink-0 mt-2 group-hover:text-primary transition-colors"></i>
+          </div>
+        </a>
+
+        <!-- 列表-记录5：晚报 -->
+        <a href="record-detail.html?id=rec_005" class="block bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-semibold bg-error/15 text-error">晚报</span>
+                <span class="text-xs text-on-surface-variant">2025-06-15 22:00</span>
+                <div class="flex items-center gap-1 ml-1">
+                  <i data-lucide="moon" class="w-3.5 h-3.5 text-primary"></i>
+                  <i data-lucide="briefcase" class="w-3.5 h-3.5 text-primary"></i>
+                  <i data-lucide="heart" class="w-3.5 h-3.5 text-error"></i>
+                </div>
+              </div>
+              <p class="text-sm text-on-surface leading-relaxed mb-2 line-clamp-2">今日完成任务：API对接完成80%，团队会议产出3个关键决策，健身1小时，感恩日记记录3件小事。整体充实而满足。</p>
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1 text-xs text-on-surface-variant">
+                  <i data-lucide="target" class="w-3 h-3"></i>
+                  <span>每日感恩日记</span>
+                </span>
+              </div>
+            </div>
+            <div class="shrink-0 flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="text-sm font-bold text-primary">8</span>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">心情</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/30 shrink-0 mt-2 group-hover:text-primary transition-colors"></i>
+          </div>
+        </a>
+
+        <!-- 列表-记录6：午报 -->
+        <a href="record-detail.html?id=rec_006" class="block bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-semibold bg-accent/15 text-accent">午报</span>
+                <span class="text-xs text-on-surface-variant">2025-06-16 12:30</span>
+                <div class="flex items-center gap-1 ml-1">
+                  <i data-lucide="sun" class="w-3.5 h-3.5 text-warning"></i>
+                  <i data-lucide="utensils" class="w-3.5 h-3.5 text-success"></i>
+                  <i data-lucide="heart" class="w-3.5 h-3.5 text-error"></i>
+                </div>
+              </div>
+              <p class="text-sm text-on-surface leading-relaxed mb-2 line-clamp-2">上午高效完成3个核心接口开发，午餐健康沙拉+鸡胸肉，心情愉悦。下午计划：Code Review + 技术文档撰写。</p>
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1 text-xs text-on-surface-variant">
+                  <i data-lucide="target" class="w-3 h-3"></i>
+                  <span>健康饮食计划</span>
+                </span>
+              </div>
+            </div>
+            <div class="shrink-0 flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
+                <span class="text-sm font-bold text-success">7</span>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">心情</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/30 shrink-0 mt-2 group-hover:text-primary transition-colors"></i>
+          </div>
+        </a>
+
+        <!-- 列表-记录7：日报 -->
+        <a href="record-detail.html?id=rec_007" class="block bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-semibold bg-primary/15 text-primary">日报</span>
+                <span class="text-xs text-on-surface-variant">2025-06-14</span>
+                <div class="flex items-center gap-1 ml-1">
+                  <i data-lucide="book-open" class="w-3.5 h-3.5 text-accent"></i>
+                  <i data-lucide="activity" class="w-3.5 h-3.5 text-success"></i>
+                </div>
+              </div>
+              <p class="text-sm text-on-surface leading-relaxed mb-2 line-clamp-2">周末学习TypeScript高级类型系统3小时，游泳1小时，整理读书笔记《原子习惯》第5-8章，收获颇丰。</p>
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1 text-xs text-on-surface-variant">
+                  <i data-lucide="target" class="w-3 h-3"></i>
+                  <span>精通 React 全栈开发</span>
+                </span>
+              </div>
+            </div>
+            <div class="shrink-0 flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="text-sm font-bold text-primary">9</span>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">心情</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/30 shrink-0 mt-2 group-hover:text-primary transition-colors"></i>
+          </div>
+        </a>
+
+        <!-- 列表-记录8：年报 -->
+        <a href="record-detail.html?id=rec_008" class="block bg-surface rounded-xl shadow-card p-5 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-semibold bg-primary/15 text-primary">年报</span>
+                <span class="text-xs text-on-surface-variant">2025年上半年</span>
+                <div class="flex items-center gap-1 ml-1">
+                  <i data-lucide="book-open" class="w-3.5 h-3.5 text-accent"></i>
+                  <i data-lucide="briefcase" class="w-3.5 h-3.5 text-primary"></i>
+                  <i data-lucide="heart" class="w-3.5 h-3.5 text-error"></i>
+                  <i data-lucide="activity" class="w-3.5 h-3.5 text-success"></i>
+                  <i data-lucide="target" class="w-3.5 h-3.5 text-warning"></i>
+                </div>
+              </div>
+              <p class="text-sm text-on-surface leading-relaxed mb-2 line-clamp-2">2025上半年回顾：累计学习420小时，完成2个全栈项目，体重管理达标，心情均值7.8，阅读24本书，新技能+3。下半年继续加油！</p>
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1 text-xs text-on-surface-variant">
+                  <i data-lucide="target" class="w-3 h-3"></i>
+                  <span>年度成长计划</span>
+                </span>
+              </div>
+            </div>
+            <div class="shrink-0 flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="text-sm font-bold text-primary">10</span>
+              </div>
+              <span class="text-[10px] text-on-surface-variant">心情</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-on-surface-variant/30 shrink-0 mt-2 group-hover:text-primary transition-colors"></i>
+          </div>
+        </a>
+
+      </div>
+
+      <!-- 浮动新增按钮 -->
+      <a href="record-form.html" id="btn-add-record" class="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-primary text-on-primary shadow-float flex items-center justify-center hover:opacity-90 hover:scale-105 active:scale-95 transition-all z-40">
+        <i data-lucide="plus" class="w-6 h-6"></i>
+      </a>
+    </main>
+    <!-- @main-content:end -->
+  </div>
+
+  <!-- 头像下拉菜单 -->
+  <div id="avatar-menu" class="hidden absolute right-6 top-14 z-50 w-48 bg-surface-container-highest backdrop-blur-xl border border-outline-variant/30 rounded-xl shadow-dialog p-1.5">
+    <a href="gateway.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="cpu" class="w-4 h-4"></i>模型网关
+    </a>
+    <a href="login.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+      <i data-lucide="log-out" class="w-4 h-4"></i>退出登录
+    </a>
+  </div>
+
+  <script>
+    // 头像菜单切换
+    document.getElementById('avatar-menu-trigger').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('avatar-menu').classList.toggle('hidden');
+    });
+    document.addEventListener('click', function() {
+      document.getElementById('avatar-menu').classList.add('hidden');
+    });
+    // 管理员功能可见性（原型阶段默认显示管理员视图）
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+
+    $(function() {
+      // 筛选标签多选交互
+      // 点击筛选标签：切换激活态，支持多选（"全部"与其他标签互斥）
+      // 点击"全部"时取消其他所有标签选中
+      // 点击其他标签时自动取消"全部"选中
+      // 选中状态样式：bg-primary/15 text-primary
+      // 未选中状态样式：bg-surface-container text-on-surface-variant
+      $('#filter-type').on('click', '.filter-tag', function() {
+        var $this = $(this);
+        var type = $this.data('type');
+
+        if (type === 'all') {
+          // 点击"全部"：取消其他所有标签，激活"全部"
+          $('#filter-type .filter-tag').each(function() {
+            $(this).removeClass('bg-primary/15 text-primary').addClass('bg-surface-container text-on-surface-variant');
+          });
+          $this.removeClass('bg-surface-container text-on-surface-variant').addClass('bg-primary/15 text-primary');
+        } else {
+          // 点击其他标签：先取消"全部"
+          $('#filter-all').removeClass('bg-primary/15 text-primary').addClass('bg-surface-container text-on-surface-variant');
+
+          // 切换当前标签
+          if ($this.hasClass('bg-primary/15')) {
+            $this.removeClass('bg-primary/15 text-primary').addClass('bg-surface-container text-on-surface-variant');
+          } else {
+            $this.removeClass('bg-surface-container text-on-surface-variant').addClass('bg-primary/15 text-primary');
+          }
+
+          // 如果没有任何维度标签选中，自动激活"全部"
+          var hasActive = false;
+          $('#filter-type .filter-tag').not('#filter-all').each(function() {
+            if ($(this).hasClass('bg-primary/15')) hasActive = true;
+          });
+          if (!hasActive) {
+            $('#filter-all').removeClass('bg-surface-container text-on-surface-variant').addClass('bg-primary/15 text-primary');
+          }
+        }
+
+        // 更新结果计数（原型阶段仅更新文案，不实际过滤）
+        updateResultCount();
+      });
+
+      // 搜索框输入防抖
+      // 输入后300ms触发筛选，原型阶段仅更新结果计数文案
+      var searchTimer;
+      $('#search-input').on('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(function() {
+          updateResultCount();
+        }, 300);
+      });
+
+      // 日期范围变更
+      $('#date-start, #date-end').on('change', function() {
+        updateResultCount();
+      });
+
+      // 更新结果计数
+      function updateResultCount() {
+        var visibleCount = $('#record-list > a:visible').length;
+        $('#result-count').text('共 ' + visibleCount + ' 条记录');
+      }
+    });
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

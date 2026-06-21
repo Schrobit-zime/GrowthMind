@@ -1,0 +1,107 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnp
+.pnp.js
+
+# Production build
+dist/
+build/
+out/
+.next/
+.rsbuild/
+
+# Testing
+coverage/
+*.lcov
+.nyc_output
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+*.log.*
+logs/
+npm-debug.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+node-compile-cache/
+.tsbuildinfo
+
+# Editor directories and files
+.vscode/
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swo
+*~
+
+# OS files
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Desktop.ini
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+.coze-logs
+.preview
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.mkv
+*.webm
+*.m4v
+
+# Archive files
+*.iso
+*.dmg
+*.rar
+*.zip
+*.gz
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Coze project
+.cozeproj/reduction
+.codegraph/
