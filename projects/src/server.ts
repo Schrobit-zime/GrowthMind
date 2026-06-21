@@ -25,11 +25,27 @@ app.prepare().then(() => {
     console.error(err);
     process.exit(1);
   });
-  server.listen(port, () => {
+  server.listen(port, hostname, () => {
     console.log(
       `> Server listening at http://${hostname}:${port} as ${
         dev ? 'development' : process.env.COZE_PROJECT_ENV
       }`,
     );
   });
+
+  // 优雅关闭：处理 SIGTERM 和 SIGINT 信号
+  function gracefulShutdown(signal: string) {
+    console.log(`Received ${signal}, closing server...`);
+    server.close(() => {
+      console.log("Server closed");
+      process.exit(0);
+    });
+    setTimeout(() => {
+      console.error("Forced shutdown after timeout");
+      process.exit(1);
+    }, 10000);
+  }
+
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 });

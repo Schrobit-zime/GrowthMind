@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   LayoutDashboard,
   FileText,
@@ -39,7 +39,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [signOutConfirmOpen, setSignOutConfirmOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const avatarMenuRef = useRef<HTMLDivElement>(null);
+
+  // 确保仅在客户端渲染后使用 portal（避免 SSR 水合不匹配）
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isAdmin = profile?.role === "admin";
 
@@ -58,9 +65,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleSignOut = async () => {
-    await signOut();
-    setSignOutConfirmOpen(false);
-    router.push("/login");
+    setSigningOut(true);
+    try {
+      await signOut();
+      setSignOutConfirmOpen(false);
+      router.push("/login");
+    } catch {
+      // 退出失败时重置状态，允许用户重试
+      setSigningOut(false);
+    }
   };
 
   const isActive = (href: string) => {
@@ -171,9 +184,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex-1" />
 
-          {/* Theme toggle */}
-          <ThemeToggle />
-
           {/* New record button */}
           <Link
             href="/record-form"
@@ -233,33 +243,39 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <MobileBottomNav />
       </div>
 
-      {/* Sign out confirmation modal */}
-      {signOutConfirmOpen && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-          <div className="bg-surface/95 backdrop-blur-2xl border border-border/30 rounded-2xl p-6 w-full max-w-sm shadow-float">
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              确认退出
-            </h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              退出登录后需要重新登录才能访问应用
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setSignOutConfirmOpen(false)}
-                className="px-4 py-2 min-h-10 text-sm font-medium text-muted-foreground hover:text-foreground bg-surface-container rounded-lg transition-colors inline-flex items-center"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="px-4 py-2 min-h-10 text-sm font-medium text-white bg-destructive hover:bg-destructive/90 rounded-lg transition-colors inline-flex items-center"
-              >
+      {/* Sign out confirmation modal — 使用 Portal 渲染到 body 层级，避免层叠上下文问题 */}
+      {mounted &&
+        signOutConfirmOpen &&
+        createPortal(
+          <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
+            <div className="bg-surface/95 backdrop-blur-2xl border border-border/30 rounded-2xl p-6 w-full max-w-sm shadow-float">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 确认退出
-              </button>
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                退出登录后需要重新登录才能访问应用
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setSignOutConfirmOpen(false)}
+                  className="px-4 py-2 min-h-10 text-sm font-medium text-muted-foreground hover:text-foreground bg-surface-container rounded-lg transition-colors inline-flex items-center"
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  disabled={signingOut}
+                  onClick={handleSignOut}
+                  className="px-4 py-2 min-h-10 text-sm font-medium text-white bg-destructive hover:bg-destructive/90 rounded-lg transition-colors inline-flex items-center disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {signingOut ? "退出中..." : "确认退出"}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

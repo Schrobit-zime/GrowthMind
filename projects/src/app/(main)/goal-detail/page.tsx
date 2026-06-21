@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { GoalActions } from "@/components/goals/goal-actions";
 import { getGoalById } from "@/lib/data/goals";

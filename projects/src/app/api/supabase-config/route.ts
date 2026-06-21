@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseCredentials } from "@/storage/database/supabase-client";
+import { handleApiError } from "@/lib/errors";
 
 export async function GET() {
   try {
@@ -7,17 +8,13 @@ export async function GET() {
 
     if (!url || !anonKey) {
       return NextResponse.json(
-        { error: "Supabase credentials not configured" },
+        { success: false, error: "Supabase 凭证未配置" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ url, anonKey });
+    return NextResponse.json({ success: true, data: { url, anonKey } });
   } catch (error) {
-    console.error("Failed to get Supabase config:", error);
-    return NextResponse.json(
-      { error: "Failed to get Supabase config" },
-      { status: 500 }
-    );
+    return handleApiError(error, "获取 Supabase 配置");
   }
 }

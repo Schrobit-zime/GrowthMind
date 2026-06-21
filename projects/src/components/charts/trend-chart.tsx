@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo } from "react";
 import {
   AreaChart,
   Area,
@@ -47,18 +48,18 @@ function CustomTooltip({
 }
 
 /** 趋势图组件 - 基于 Recharts AreaChart */
-export default function TrendChart({
+const TrendChart = React.memo(function TrendChart({
   data,
   dataKeys,
   xAxisKey,
   colors,
 }: TrendChartProps) {
-  const defaultColors = [
+  const defaultColors = useMemo(() => [
     CHART_COLORS.primary,
     CHART_COLORS.accent,
     CHART_COLORS.rose,
-  ];
-  const lineColors = colors || defaultColors;
+  ], []);
+  const lineColors = useMemo(() => colors || defaultColors, [colors, defaultColors]);
 
   if (!data || data.length === 0) {
     return (
@@ -137,4 +138,6 @@ export default function TrendChart({
       </AreaChart>
     </ResponsiveContainer>
   );
-}
+});
+
+export default TrendChart;

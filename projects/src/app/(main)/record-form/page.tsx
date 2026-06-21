@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,10 +96,10 @@ export default function RecordFormPage() {
       if (json.success) {
         router.push(`/record-detail?record_id=${json.data.id}`);
       } else {
-        alert(json.error || "保存失败");
+        toast.error(json.error || "保存失败");
       }
     } catch {
-      alert("保存失败，请重试");
+      toast.error("保存失败，请重试");
     } finally {
       setSaving(false);
     }

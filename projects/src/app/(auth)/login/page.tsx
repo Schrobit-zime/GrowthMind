@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
 import { getSupabaseBrowserClientAsync } from "@/lib/supabase-browser";
-import Image from "next/image";
 import { Eye, EyeOff, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +57,14 @@ export default function LoginPage() {
         });
         if (signUpError) throw signUpError;
         if (data.session?.access_token) {
-          document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=3600; SameSite=Lax`;
+          // 通过服务端 API 设置 httpOnly cookie
+          await fetch("/api/auth/set-cookie", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: data.session.access_token }),
+          });
+          // 设置非 httpOnly 标记 cookie 供 middleware 快速判断登录状态
+          document.cookie = "sb-logged-in=true; path=/; max-age=3600; SameSite=Lax";
         }
         router.replace("/");
       } else {
@@ -73,7 +79,14 @@ export default function LoginPage() {
           return;
         }
         if (data.session?.access_token) {
-          document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=3600; SameSite=Lax`;
+          // 通过服务端 API 设置 httpOnly cookie
+          await fetch("/api/auth/set-cookie", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: data.session.access_token }),
+          });
+          // 设置非 httpOnly 标记 cookie 供 middleware 快速判断登录状态
+          document.cookie = "sb-logged-in=true; path=/; max-age=3600; SameSite=Lax";
         }
         router.replace("/");
       }

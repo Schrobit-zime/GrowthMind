@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useFetch } from "@/hooks/use-api";
 import {
@@ -16,23 +17,31 @@ import { StatCard } from "@/components/cards/stat-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
-import TrendChart from "@/components/charts/trend-chart";
-import RadarChartComponent from "@/components/charts/radar-chart";
-import Heatmap from "@/components/charts/heatmap";
-import ProgressRing from "@/components/charts/progress-ring";
+
+// 图表组件动态导入，减少首屏 JS 体积
+const TrendChart = dynamic(() => import("@/components/charts/trend-chart"), {
+  ssr: false,
+  loading: () => <LoadingSkeleton type="card" />,
+});
+const RadarChartComponent = dynamic(() => import("@/components/charts/radar-chart"), {
+  ssr: false,
+});
+const Heatmap = dynamic(() => import("@/components/charts/heatmap"), {
+  ssr: false,
+});
 
 interface RecordItem {
   id: string;
-  record_date: string;
-  time_dimension: string;
+  recordDate: string;
+  timeDimension: string;
   learning: Record<string, unknown>;
   work: Record<string, unknown>;
   life: Record<string, unknown>;
   health: Record<string, unknown>;
   mood: Record<string, unknown>;
-  mood_score: number | null;
+  moodScore: number | null;
   summary: string | null;
-  goal_id: string | null;
+  goalId: string | null;
 }
 
 interface GoalItem {
@@ -40,8 +49,8 @@ interface GoalItem {
   name: string;
   dimension: string;
   metric: string;
-  target_value: number;
-  current_value: number;
+  targetValue: number;
+  currentValue: number;
   deadline: string | null;
   status: string;
 }
@@ -78,7 +87,7 @@ export default function HomePage() {
     if (!records || records.length === 0) return null;
     const today = new Date().toISOString().slice(0, 10);
     const todayRecords = records.filter(
-      (r) => r.record_date && r.record_date.slice(0, 10) === today
+      (r) => r.recordDate && r.recordDate.slice(0, 10) === today
     );
 
     const learningCount = todayRecords.filter((r) =>
@@ -91,8 +100,8 @@ export default function HomePage() {
       hasDimensionData(r.health)
     ).length;
     const moodScores = todayRecords
-      .filter((r) => r.mood_score != null)
-      .map((r) => r.mood_score!);
+      .map((r) => r.moodScore)
+      .filter((s): s is number => s != null);
     const avgMood =
       moodScores.length > 0
         ? moodScores.reduce((a, b) => a + b, 0) / moodScores.length
@@ -154,11 +163,11 @@ export default function HomePage() {
   const moodTrendPoints = useMemo(() => {
     if (!records || records.length === 0) return [];
     const sorted = [...records]
-      .filter((r) => r.mood_score != null)
+      .filter((r): r is RecordItem & { moodScore: number } => r.moodScore != null)
       .sort(
         (a, b) =>
-          new Date(a.record_date).getTime() -
-          new Date(b.record_date).getTime()
+          new Date(a.recordDate).getTime() -
+          new Date(b.recordDate).getTime()
       )
       .slice(-14);
     if (sorted.length === 0) return [];
@@ -167,9 +176,9 @@ export default function HomePage() {
     const range = maxScore - minScore;
     return sorted.map((r, i) => ({
       x: 40 + i * (540 / Math.max(sorted.length - 1, 1)),
-      y: 140 - ((r.mood_score! - minScore) / range) * 120,
-      label: r.record_date.slice(5),
-      score: r.mood_score!,
+      y: 140 - ((r.moodScore - minScore) / range) * 120,
+      label: r.recordDate.slice(5),
+      score: r.moodScore,
     }));
   }, [records]);
 
@@ -183,11 +192,11 @@ export default function HomePage() {
         id: g.id,
         name: g.name,
         progress:
-          g.target_value > 0
-            ? Math.min(Math.round((g.current_value / g.target_value) * 100), 100)
+          g.targetValue > 0
+            ? Math.min(Math.round((g.currentValue / g.targetValue) * 100), 100)
             : 0,
-        current: g.current_value,
-        target: g.target_value,
+        current: g.currentValue,
+        target: g.targetValue,
         unit: g.metric || "",
       }));
   }, [goals]);
@@ -201,7 +210,7 @@ export default function HomePage() {
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().slice(0, 10);
       const count = records.filter(
-        (r) => r.record_date && r.record_date.slice(0, 10) === dateStr
+        (r) => r.recordDate && r.recordDate.slice(0, 10) === dateStr
       ).length;
       days.push({ date: dateStr, count });
     }
@@ -220,10 +229,10 @@ export default function HomePage() {
       records.filter((r) => hasDimensionData(r.life)).length / total;
     const healthPct =
       records.filter((r) => hasDimensionData(r.health)).length / total;
-    const moodScores = records.filter((r) => r.mood_score != null);
+    const moodScores = records.filter((r): r is RecordItem & { moodScore: number } => r.moodScore != null);
     const moodPct =
       moodScores.length > 0
-        ? moodScores.reduce((a, r) => a + r.mood_score!, 0) /
+        ? moodScores.reduce((a, r) => a + r.moodScore, 0) /
           moodScores.length /
           10
         : 0;

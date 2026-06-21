@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getTokenFromRequest } from "@/lib/auth";
 import type { User } from "@supabase/supabase-js";
 
 export interface AuthResult {
@@ -10,7 +11,7 @@ export interface AuthResult {
 export async function authenticateRequest(
   request: NextRequest
 ): Promise<AuthResult | null> {
-  const token = request.headers.get("x-session");
+  const token = getTokenFromRequest(request);
   if (!token) return null;
   try {
     const db = getSupabaseClient(token);

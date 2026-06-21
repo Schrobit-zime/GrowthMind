@@ -4,15 +4,16 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Plus, Edit2, Trash2, Bell, Mail, User } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Bell, Mail, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ErrorState } from "@/components/shared/error-state";
 
 interface RuleItem {
   id: string;
-  rule_type: string;
+  ruleType: string;
   condition: Record<string, unknown>;
   actions: string[];
   enabled: boolean;
@@ -38,6 +39,7 @@ function RulesContent() {
   const supervisedUserId = searchParams.get("user_id");
   const [rules, setRules] = useState<RuleItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,6 +60,7 @@ function RulesContent() {
       if (json.success) setRules(json.data || []);
     } catch (err) {
       console.error("Failed to fetch rules:", err);
+      setError("获取提醒规则数据失败，请检查网络连接后重试");
     } finally {
       setLoading(false);
     }
@@ -125,6 +128,8 @@ function RulesContent() {
           <div className="flex items-center justify-center py-20">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : error ? (
+          <ErrorState title="加载失败" message={error} onRetry={fetchRules} />
         ) : rules.length === 0 ? (
           <Card className="backdrop-blur-md bg-white/5 border-white/10 text-center">
           <CardContent className="py-12">
@@ -144,7 +149,7 @@ function RulesContent() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="px-2 py-0.5 text-xs font-medium rounded-md bg-primary/10 text-primary">
-                        {ruleTypeLabels[rule.rule_type] || rule.rule_type}
+                        {ruleTypeLabels[rule.ruleType] || rule.ruleType}
                       </span>
                       <span className={`px-2 py-0.5 text-xs rounded-full ${rule.enabled ? "bg-success/10 text-success" : "bg-muted-foreground/20 text-muted-foreground"}`}>
                         {rule.enabled ? "已启用" : "已禁用"}

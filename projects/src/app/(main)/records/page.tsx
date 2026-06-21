@@ -14,6 +14,7 @@ import { RecordCard } from "@/components/cards/record-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { ErrorState } from "@/components/shared/error-state";
 import { TagGroup } from "@/components/shared/tag-group";
 
 const timeDimensions = ["全部", "日报", "周报", "月报", "年报", "早报", "午报", "晚报"];
@@ -31,16 +32,16 @@ const dimensionMap: Record<string, string> = {
 
 interface RecordItem {
   id: string;
-  time_dimension: string;
-  record_date: string;
+  timeDimension: string;
+  recordDate: string;
   learning?: Record<string, unknown>;
   work?: Record<string, unknown>;
   life?: Record<string, unknown>;
   health?: Record<string, unknown>;
   mood?: Record<string, unknown>;
-  mood_score?: number;
+  moodScore?: number;
   summary?: string;
-  goal_id?: string;
+  goalId?: string;
 }
 
 export default function RecordsPage() {
@@ -49,6 +50,7 @@ export default function RecordsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRecords = useCallback(async () => {
     if (!session?.access_token) return;
@@ -65,6 +67,7 @@ export default function RecordsPage() {
       if (json.success) setRecords(json.data || []);
     } catch (err) {
       console.error("Failed to fetch records:", err);
+      setError("获取记录数据失败，请检查网络连接后重试");
     } finally {
       setLoading(false);
     }
@@ -133,6 +136,8 @@ export default function RecordsPage() {
 
       {loading ? (
         <LoadingSkeleton type="list" count={5} />
+      ) : error ? (
+        <ErrorState title="加载失败" message={error} onRetry={fetchRecords} />
       ) : filtered.length === 0 ? (
         <Card className="backdrop-blur-md bg-white/5 border-white/10 text-center">
           <EmptyState
@@ -149,10 +154,10 @@ export default function RecordsPage() {
               <RecordCard
                 key={record.id}
                 id={record.id}
-                timeDimension={record.time_dimension}
-                recordDate={record.record_date}
+                timeDimension={record.timeDimension}
+                recordDate={record.recordDate}
                 summary={record.summary}
-                moodScore={record.mood_score}
+                moodScore={record.moodScore}
                 activeDimensions={dims}
                 href={`/record-detail?record_id=${record.id}`}
               />

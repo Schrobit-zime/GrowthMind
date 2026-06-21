@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -40,7 +41,7 @@ export function RecordActions({ recordId }: RecordActionsProps) {
         router.push("/records");
       }
     } catch {
-      alert("删除失败");
+      toast.error("删除失败");
     } finally {
       setDeleting(false);
     }

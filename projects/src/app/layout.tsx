@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
+import { Toaster } from "sonner";
 import { SupabaseConfigProvider } from "@/components/auth/supabase-config-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
 
@@ -31,6 +32,7 @@ export default async function RootLayout({
             <SupabaseConfigProvider>
               <AuthProvider>{children}</AuthProvider>
             </SupabaseConfigProvider>
+            <Toaster position="top-center" richColors />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

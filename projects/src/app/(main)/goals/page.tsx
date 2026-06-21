@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Plus } from "lucide-react";
@@ -10,44 +9,32 @@ import { StatCard } from "@/components/cards/stat-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { ErrorState } from "@/components/shared/error-state";
+import { useFetch } from "@/hooks/use-api";
 
 interface GoalItem {
   id: string;
   name: string;
   dimension: string;
   metric: string;
-  target_value: number;
-  current_value: number;
+  targetValue: number;
+  currentValue: number;
   deadline?: string;
   status: string;
 }
 
 export default function GoalsPage() {
   const { session } = useAuth();
-  const [goals, setGoals] = useState<GoalItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: goals,
+    loading,
+    error,
+    refetch: fetchGoals,
+  } = useFetch<GoalItem[]>("/api/goals", { enabled: !!session?.access_token });
 
-  const fetchGoals = useCallback(async () => {
-    if (!session?.access_token) return;
-    try {
-      const res = await fetch("/api/goals", {
-        headers: { "x-session": session.access_token },
-      });
-      const json = await res.json();
-      if (json.success) setGoals(json.data || []);
-    } catch (err) {
-      console.error("Failed to fetch goals:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [session?.access_token]);
-
-  useEffect(() => {
-    fetchGoals();
-  }, [fetchGoals]);
-
-  const activeGoals = goals.filter((g) => g.status === "active");
-  const completedGoals = goals.filter((g) => g.status === "completed");
+  const goalsList = goals || [];
+  const activeGoals = goalsList.filter((g) => g.status === "active");
+  const completedGoals = goalsList.filter((g) => g.status === "completed");
 
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-3xl mx-auto">
@@ -59,12 +46,14 @@ export default function GoalsPage() {
       <div className="grid grid-cols-3 gap-4">
         <StatCard title="进行中" value={activeGoals.length} />
         <StatCard title="已完成" value={completedGoals.length} />
-        <StatCard title="总目标" value={goals.length} />
+        <StatCard title="总目标" value={goalsList.length} />
       </div>
 
       {loading ? (
         <LoadingSkeleton type="list" count={4} />
-      ) : goals.length === 0 ? (
+      ) : error ? (
+        <ErrorState title="加载失败" message={error} onRetry={fetchGoals} />
+      ) : goalsList.length === 0 ? (
         <EmptyState
           title="暂无目标"
           actionLabel="创建目标"
@@ -72,15 +61,15 @@ export default function GoalsPage() {
         />
       ) : (
         <div className="space-y-3">
-          {goals.map((goal) => (
+          {goalsList.map((goal) => (
             <GoalCard
               key={goal.id}
               id={goal.id}
               name={goal.name}
               dimension={goal.dimension}
               metric={goal.metric}
-              currentValue={goal.current_value}
-              targetValue={goal.target_value}
+              currentValue={goal.currentValue}
+              targetValue={goal.targetValue}
               deadline={goal.deadline}
               status={goal.status}
             />

@@ -60,19 +60,52 @@ function getSupabaseServiceRoleKey(): string | undefined {
   return process.env.COZE_SUPABASE_SERVICE_ROLE_KEY;
 }
 
+// Supabase 客户端缓存，避免重复创建连接
+const clientCache = new Map<string, { client: SupabaseClient; expiresAt: number }>();
+const ANONYMOUS_CACHE_KEY = '__anonymous__';
+const CACHE_TTL = 3600 * 1000; // 1小时 TTL
+
 function getSupabaseClient(token?: string): SupabaseClient {
   const { url, anonKey } = getSupabaseCredentials();
-  const key = token ? anonKey : (getSupabaseServiceRoleKey() ?? anonKey);
 
-  const globalOptions: Record<string, unknown> = {};
-  if (token) {
-    globalOptions.headers = { Authorization: `Bearer ${token}` };
+  // 无 token 时返回缓存的匿名客户端
+  if (!token) {
+    const cached = clientCache.get(ANONYMOUS_CACHE_KEY);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.client;
+    }
+    const key = getSupabaseServiceRoleKey() ?? anonKey;
+    const client = createClient(url, key, {
+      global: {},
+      db: { timeout: 60000 },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    clientCache.set(ANONYMOUS_CACHE_KEY, {
+      client,
+      expiresAt: Date.now() + CACHE_TTL,
+    });
+    return client;
   }
-  return createClient(url, key, {
-    global: globalOptions,
+
+  // 检查 token 缓存
+  const cached = clientCache.get(token);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.client;
+  }
+
+  // 创建新客户端并缓存
+  const client = createClient(url, anonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
     db: { timeout: 60000 },
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  clientCache.set(token, {
+    client,
+    expiresAt: Date.now() + CACHE_TTL,
+  });
+
+  return client;
 }
 
 export { loadEnv, getSupabaseCredentials, getSupabaseServiceRoleKey, getSupabaseClient };

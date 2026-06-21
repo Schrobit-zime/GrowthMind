@@ -24,7 +24,7 @@ const analysisTypes = [
 
 interface HistoryItem {
   id: string;
-  analysis_type: string;
+  analysisType: string;
   created_at: string;
   dimensions: string[];
   result: string;
@@ -212,7 +212,7 @@ export default function AnalysisPage() {
                 className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-4 hover:bg-surface/60 transition-all cursor-pointer">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="px-2 py-0.5 text-xs font-medium rounded-md bg-primary/10 text-primary">
-                    {item.analysis_type === "trend" ? "趋势分析" : item.analysis_type === "assessment" ? "综合评估" : "优化建议"}
+                    {item.analysisType === "trend" ? "趋势分析" : item.analysisType === "assessment" ? "综合评估" : "优化建议"}
                   </span>
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Clock className="w-3 h-3" /> {new Date(item.created_at).toLocaleDateString("zh-CN")}

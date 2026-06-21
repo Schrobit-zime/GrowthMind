@@ -7,6 +7,7 @@ import {
   reminderRules,
   analysisHistory,
   gatewayUsageLog,
+  emailTemplates,
 } from "./schema";
 
 // profiles 一对多关联
@@ -18,6 +19,7 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
   reminderRules: many(reminderRules),
   analysisHistory: many(analysisHistory),
   gatewayUsageLogs: many(gatewayUsageLog),
+  emailTemplates: many(emailTemplates),
 }));
 
 // records 多对一关联
@@ -52,4 +54,9 @@ export const analysisHistoryRelations = relations(analysisHistory, ({ one }) => 
 // gatewayUsageLog 关联
 export const gatewayUsageLogRelations = relations(gatewayUsageLog, ({ one }) => ({
   user: one(profiles, { fields: [gatewayUsageLog.userId], references: [profiles.userId] }),
+}));
+
+// emailTemplates 关联
+export const emailTemplatesRelations = relations(emailTemplates, ({ one }) => ({
+  creator: one(profiles, { fields: [emailTemplates.createdBy], references: [profiles.userId] }),
 }));

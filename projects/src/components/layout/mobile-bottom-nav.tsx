@@ -2,15 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/auth/auth-provider";
 import {
   LayoutDashboard,
   FileText,
   PlusCircle,
   Brain,
   Target,
+  Users,
+  Server,
 } from "lucide-react";
 
-const mobileNavItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  highlight?: boolean;
+}
+
+const mobileNavItems: NavItem[] = [
   { href: "/", label: "仪表盘", icon: LayoutDashboard },
   { href: "/records", label: "记录", icon: FileText },
   { href: "/record-form", label: "新增", icon: PlusCircle, highlight: true },
@@ -18,8 +28,19 @@ const mobileNavItems = [
   { href: "/goals", label: "目标", icon: Target },
 ];
 
+const adminMobileNavItems: NavItem[] = [
+  { href: "/supervise", label: "监督", icon: Users },
+  { href: "/gateway", label: "网关", icon: Server },
+];
+
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === "admin";
+
+  const navItems = isAdmin
+    ? [...mobileNavItems, ...adminMobileNavItems]
+    : mobileNavItems;
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -29,7 +50,7 @@ export function MobileBottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl border-t border-border/20 lg:hidden safe-area-bottom">
       <div className="flex items-center justify-around h-16 px-2">
-        {mobileNavItems.map((item) => {
+        {navItems.map((item) => {
           const active = isActive(item.href);
           return (
             <Link

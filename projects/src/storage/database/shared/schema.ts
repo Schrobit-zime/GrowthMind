@@ -110,6 +110,7 @@ export const emailTemplates = pgTable("email_templates", {
   subject: text("subject").notNull(),
   body: text("body").notNull(),
   variables: jsonb("variables").default("[]"),
+  createdBy: uuid("created_by"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }).defaultNow(),
 });

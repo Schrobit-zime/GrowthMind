@@ -6,6 +6,18 @@ import { authenticateRequest, unauthorizedResponse } from "@/lib/api-auth";
 import { handleApiError } from "@/lib/errors";
 import Papa from "papaparse";
 import { jsPDF } from "jspdf";
+import { z } from "zod";
+
+/** 导出最大行数限制，防止内存溢出 */
+const MAX_EXPORT_ROWS = 10000;
+
+/** 导出查询参数校验 */
+const exportQuerySchema = z.object({
+  type: z.enum(["records", "goals"]),
+  format: z.enum(["csv", "pdf"]),
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
 
 export async function GET(request: NextRequest) {
   const auth = await authenticateRequest(request);
@@ -13,27 +25,26 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type") as "records" | "goals";
-    const format = searchParams.get("format") as "csv" | "pdf";
-
-    if (
-      !type ||
-      !format ||
-      !["records", "goals"].includes(type) ||
-      !["csv", "pdf"].includes(format)
-    ) {
+    const rawParams = {
+      type: searchParams.get("type"),
+      format: searchParams.get("format"),
+      from: searchParams.get("from"),
+      to: searchParams.get("to"),
+    };
+    const parsed = exportQuerySchema.safeParse(rawParams);
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "参数无效" },
+        { success: false, error: parsed.error.issues[0]?.message || "参数无效" },
         { status: 400 }
       );
     }
+
+    const { type, format, from, to } = parsed.data;
 
     let data: any[];
 
     if (type === "records") {
       const conditions = [eq(records.userId, auth.user.id)];
-      const from = searchParams.get("from");
-      const to = searchParams.get("to");
       if (from) conditions.push(gte(records.recordDate, from));
       if (to) conditions.push(lte(records.recordDate, to));
 
@@ -41,13 +52,15 @@ export async function GET(request: NextRequest) {
         .select()
         .from(records)
         .where(and(...conditions))
-        .orderBy(desc(records.createdAt));
+        .orderBy(desc(records.createdAt))
+        .limit(MAX_EXPORT_ROWS);
     } else {
       data = await db
         .select()
         .from(goals)
         .where(eq(goals.userId, auth.user.id))
-        .orderBy(desc(goals.createdAt));
+        .orderBy(desc(goals.createdAt))
+        .limit(MAX_EXPORT_ROWS);
     }
 
     if (!data.length) {

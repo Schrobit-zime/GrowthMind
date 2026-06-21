@@ -41,11 +41,21 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-function setAuthCookie(token: string | null) {
+// 通过服务端 API 设置 httpOnly cookie，同时设置非 httpOnly 标记 cookie
+async function setAuthCookie(token: string | null) {
   if (token) {
-    document.cookie = `sb-access-token=${token}; path=/; max-age=3600; SameSite=Lax`;
+    // 调用服务端 API 设置 httpOnly cookie
+    await fetch("/api/auth/set-cookie", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    // 设置非 httpOnly 标记 cookie 供 middleware 快速判断登录状态
+    document.cookie = "sb-logged-in=true; path=/; max-age=3600; SameSite=Lax";
   } else {
-    document.cookie = "sb-access-token=; path=/; max-age=0";
+    // 清除 cookie
+    await fetch("/api/auth/set-cookie", { method: "DELETE" });
+    document.cookie = "sb-logged-in=; path=/; max-age=0";
   }
 }
 
@@ -88,6 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
+    const timeout = setTimeout(() => {
+      if (mounted) setIsLoading(false);
+    }, 10000);
+
     async function init() {
       try {
         const supabase = await getSupabaseBrowserClientAsync();
@@ -109,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Auth init error:", err);
       } finally {
         if (mounted) setIsLoading(false);
+        clearTimeout(timeout);
       }
     }
 
@@ -116,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
+      clearTimeout(timeout);
     };
   }, [fetchProfile]);
 

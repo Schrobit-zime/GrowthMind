@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   RadarChart as RechartsRadar,
   PolarGrid,
@@ -43,7 +44,7 @@ function CustomTooltip({
 }
 
 /** 五维雷达图组件 - 基于 Recharts RadarChart */
-export default function RadarChartComponent({
+const RadarChartComponent = React.memo(function RadarChartComponent({
   data,
   color = CHART_COLORS.primary,
   maxValue = 1,
@@ -91,4 +92,6 @@ export default function RadarChartComponent({
       </RechartsRadar>
     </ResponsiveContainer>
   );
-}
+});
+
+export default RadarChartComponent;

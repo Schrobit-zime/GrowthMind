@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo } from "react";
 import { CHART_COLORS } from "./chart-theme";
 
 interface HeatmapDataItem {
@@ -24,24 +25,28 @@ function getColorIntensity(value: number, maxValue: number, baseColor: string): 
 }
 
 /** 日历热力图组件 */
-export default function Heatmap({
+const Heatmap = React.memo(function Heatmap({
   data,
   columns = 7,
   color = CHART_COLORS.primary,
 }: HeatmapProps) {
+  // 缓存计算密集型操作
+  const maxValue = useMemo(() => Math.max(...data.map((d) => d.value), 1), [data]);
+
+  const rows = useMemo(() => {
+    const result: HeatmapDataItem[][] = [];
+    for (let i = 0; i < data.length; i += columns) {
+      result.push(data.slice(i, i + columns));
+    }
+    return result;
+  }, [data, columns]);
+
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
         暂无活跃度数据
       </div>
     );
-  }
-
-  const maxValue = Math.max(...data.map((d) => d.value), 1);
-
-  const rows: HeatmapDataItem[][] = [];
-  for (let i = 0; i < data.length; i += columns) {
-    rows.push(data.slice(i, i + columns));
   }
 
   return (
@@ -76,4 +81,6 @@ export default function Heatmap({
       </div>
     </div>
   );
-}
+});
+
+export default Heatmap;

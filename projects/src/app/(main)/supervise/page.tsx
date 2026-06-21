@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useRouter } from "next/navigation";
-import { Users, UserCheck, FileText, Bell, Search, X, UserPlus, UserX } from "lucide-react";
+import { Users, UserCheck, FileText, Bell, Search, X, UserPlus, UserX, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -12,21 +12,36 @@ import { StatCard } from "@/components/cards/stat-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { ErrorState } from "@/components/shared/error-state";
+import { useFetch } from "@/hooks/use-api";
 
 interface SupervisedUser {
   id: string;
-  supervised_user_id: string;
-  supervised?: { display_name?: string; avatar_url?: string } | null;
+  supervisedUserId: string;
+  supervised?: { displayName?: string; avatar_url?: string } | null;
+}
+
+interface SearchResult {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
 }
 
 export default function SupervisePage() {
   const { profile, session, isLoading } = useAuth();
   const router = useRouter();
-  const [users, setUsers] = useState<SupervisedUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: users,
+    loading,
+    error,
+    refetch: fetchUsers,
+  } = useFetch<SupervisedUser[]>("/api/supervise", { enabled: !!session?.access_token });
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
   useEffect(() => {
     if (!isLoading && profile?.role !== "admin") {
@@ -34,24 +49,54 @@ export default function SupervisePage() {
     }
   }, [profile, isLoading, router]);
 
-  const fetchUsers = useCallback(async () => {
-    if (!session?.access_token) return;
+  const handleSearch = useCallback(async () => {
+    if (!session?.access_token || searchQuery.length < 2) {
+      setSearchError("请输入至少2个字符");
+      return;
+    }
+    setSearchLoading(true);
+    setSearchError("");
     try {
-      const res = await fetch("/api/supervise", {
+      const res = await fetch(`/api/supervise/search?q=${encodeURIComponent(searchQuery)}`, {
         headers: { "x-session": session.access_token },
       });
       const json = await res.json();
-      if (json.success) setUsers(json.data || []);
-    } catch (err) {
-      console.error("Failed to fetch supervised users:", err);
+      if (json.success) {
+        setSearchResults(json.data || []);
+      } else {
+        setSearchError(json.error || "搜索失败");
+      }
+    } catch {
+      setSearchError("网络错误，请重试");
     } finally {
-      setLoading(false);
+      setSearchLoading(false);
     }
-  }, [session?.access_token]);
+  }, [session?.access_token, searchQuery]);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  const handleAddSupervise = async (supervisedUserId: string) => {
+    if (!session?.access_token) return;
+    try {
+      const res = await fetch("/api/supervise", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-session": session.access_token,
+        },
+        body: JSON.stringify({ supervisedUserId }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setShowAddPanel(false);
+        setSearchQuery("");
+        setSearchResults([]);
+        fetchUsers();
+      } else {
+        setSearchError(json.error || "添加失败");
+      }
+    } catch {
+      setSearchError("网络错误，请重试");
+    }
+  };
 
   const handleRemove = async (id: string) => {
     if (!session?.access_token) return;
@@ -62,7 +107,8 @@ export default function SupervisePage() {
       });
       const json = await res.json();
       if (json.success) {
-        setUsers(users.filter((u) => u.id !== id));
+        setShowRemoveConfirm(null);
+        fetchUsers();
       }
     } catch (err) {
       console.error("Failed to remove supervision:", err);
@@ -70,7 +116,7 @@ export default function SupervisePage() {
     setShowRemoveConfirm(null);
   };
 
-  if (isLoading || profile?.role !== "admin") {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -78,9 +124,14 @@ export default function SupervisePage() {
     );
   }
 
+  if (!profile || profile.role !== "admin") {
+    return null;
+  }
+
+  const usersList = users || [];
   const stats = {
-    total: users.length,
-    active: users.length,
+    total: usersList.length,
+    active: usersList.length,
   };
 
   return (
@@ -114,7 +165,9 @@ export default function SupervisePage() {
 
       {loading ? (
         <LoadingSkeleton type="list" count={3} />
-      ) : users.length === 0 ? (
+      ) : error ? (
+        <ErrorState title="加载失败" message={error} onRetry={fetchUsers} />
+      ) : usersList.length === 0 ? (
         <Card className="backdrop-blur-md bg-white/5 border-white/10 text-center">
           <EmptyState
             icon={<Users className="w-12 h-12" />}
@@ -125,20 +178,20 @@ export default function SupervisePage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {users.map((user) => (
+          {usersList.map((user) => (
             <div key={user.id} className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-4 hover:bg-surface/60 transition-all group">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary flex-shrink-0">
-                  {(user.supervised?.display_name || user.supervised_user_id.slice(0, 2)).charAt(0).toUpperCase()}
+                  {(user.supervised?.displayName || user.supervisedUserId.slice(0, 2)).charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-semibold text-foreground">
-                    {user.supervised?.display_name || `用户 ${user.supervised_user_id.slice(0, 8)}`}
+                    {user.supervised?.displayName || `用户 ${user.supervisedUserId.slice(0, 8)}`}
                   </span>
-                  <p className="text-xs text-muted-foreground mt-0.5">ID: {user.supervised_user_id.slice(0, 8)}...</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">ID: {user.supervisedUserId.slice(0, 8)}...</p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <Link href={`/supervise-user-detail?user_id=${user.supervised_user_id}`} className="px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                  <Link href={`/supervise-user-detail?user_id=${user.supervisedUserId}`} className="px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
                     查看详情
                   </Link>
                   <Button variant="ghost" size="icon" onClick={() => setShowRemoveConfirm(user.id)} className="text-muted-foreground hover:text-destructive">
@@ -167,9 +220,49 @@ export default function SupervisePage() {
             </div>
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="搜索用户邮箱..." className="w-full pl-10 pr-4 py-3 bg-surface-container border-none rounded-lg text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setSearchError(""); }}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                placeholder="搜索用户邮箱或 ID..."
+                className="w-full pl-10 pr-20 py-3 bg-surface-container border-none rounded-lg text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              <button
+                onClick={handleSearch}
+                disabled={searchLoading}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-all"
+              >
+                {searchLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "搜索"}
+              </button>
             </div>
-            <p className="text-sm text-muted-foreground text-center py-4">请输入用户邮箱或 ID 进行搜索</p>
+            {searchError && (
+              <p className="text-sm text-red-400 mb-3">{searchError}</p>
+            )}
+            {searchResults.length > 0 && (
+              <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
+                {searchResults.map((user) => (
+                  <div key={user.userId} className="flex items-center gap-3 p-3 bg-surface/40 rounded-lg">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+                      {(user.displayName || "U").charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{user.displayName || "未命名"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.userId}</p>
+                    </div>
+                    <button
+                      onClick={() => handleAddSupervise(user.userId)}
+                      className="px-3 py-1.5 text-xs font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors flex-shrink-0"
+                    >
+                      添加
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {searchResults.length === 0 && !searchError && (
+              <p className="text-sm text-muted-foreground text-center py-4">输入用户邮箱或 ID 后点击搜索</p>
+            )}
           </div>
         </>
       )}
