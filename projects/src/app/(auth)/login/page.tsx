@@ -52,15 +52,17 @@ export default function LoginPage() {
       const supabase = await getSupabaseBrowserClientAsync();
 
       if (mode === "register") {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
         });
         if (signUpError) throw signUpError;
-        // Auto-confirm is enabled, redirect to home
+        if (data.session?.access_token) {
+          document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=3600; SameSite=Lax`;
+        }
         router.replace("/");
       } else {
-        const { error: signInError } =
+        const { data, error: signInError } =
           await supabase.auth.signInWithPassword({ email, password });
         if (signInError) {
           if (signInError.message.includes("Invalid login credentials")) {
@@ -69,6 +71,9 @@ export default function LoginPage() {
             setError(signInError.message);
           }
           return;
+        }
+        if (data.session?.access_token) {
+          document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=3600; SameSite=Lax`;
         }
         router.replace("/");
       }

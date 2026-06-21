@@ -36,9 +36,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for session cookie
+  // Check for session cookie or Authorization header
   const accessToken = request.cookies.get("sb-access-token")?.value
-    || request.cookies.get("sb-growthmind-auth-token")?.value;
+    || request.cookies.get("sb-growthmind-auth-token")?.value
+    || request.headers.get("authorization")?.replace("Bearer ", "");
 
   // Public routes that don't need auth
   const publicRoutes = ["/login", "/api/supabase-config"];
@@ -67,11 +68,12 @@ export async function middleware(request: NextRequest) {
       } = await supabase.auth.getUser(accessToken);
 
       if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("user_id", user.id)
-          .maybeSingle();
+        const origin = request.nextUrl.origin;
+        const profileRes = await fetch(
+          `${origin}/api/profile?userId=${encodeURIComponent(user.id)}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        const profile = profileRes.ok ? await profileRes.json() : null;
 
         if (profile?.role !== "admin") {
           if (pathname.startsWith("/api/")) {

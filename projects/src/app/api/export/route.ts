@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { db } from "@/lib/db";
+import { records, goals } from "@/storage/database/shared/schema";
+import { eq, and, gte, lte, desc } from "drizzle-orm";
 import { authenticateRequest, unauthorizedResponse } from "@/lib/api-auth";
 import { handleApiError } from "@/lib/errors";
 import Papa from "papaparse";
@@ -26,31 +28,26 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const db = getSupabaseClient(auth.token);
     let data: any[];
 
     if (type === "records") {
-      let query = db
-        .from("records")
-        .select("*")
-        .eq("user_id", auth.user.id)
-        .order("created_at", { ascending: false });
-
+      const conditions = [eq(records.userId, auth.user.id)];
       const from = searchParams.get("from");
       const to = searchParams.get("to");
-      if (from && to) {
-        query = query.gte("record_date", from).lte("record_date", to);
-      }
+      if (from) conditions.push(gte(records.recordDate, from));
+      if (to) conditions.push(lte(records.recordDate, to));
 
-      const { data: recs } = await query;
-      data = recs || [];
+      data = await db
+        .select()
+        .from(records)
+        .where(and(...conditions))
+        .orderBy(desc(records.createdAt));
     } else {
-      const { data: gs } = await db
-        .from("goals")
-        .select("*")
-        .eq("user_id", auth.user.id)
-        .order("created_at", { ascending: false });
-      data = gs || [];
+      data = await db
+        .select()
+        .from(goals)
+        .where(eq(goals.userId, auth.user.id))
+        .orderBy(desc(goals.createdAt));
     }
 
     if (!data.length) {
@@ -100,8 +97,8 @@ export async function GET(request: NextRequest) {
       for (const row of data) {
         const text =
           type === "records"
-            ? `[${row.record_date}] ${row.time_dimension} - ${row.summary || "无摘要"}`
-            : `[${row.name}] ${row.dimension} - ${row.current_value}/${row.target_value} (${row.status})`;
+            ? `[${row.recordDate}] ${row.timeDimension} - ${row.summary || "无摘要"}`
+            : `[${row.name}] ${row.dimension} - ${row.currentValue}/${row.targetValue} (${row.status})`;
 
         const lines = doc.splitTextToSize(text, 180);
         for (const line of lines) {

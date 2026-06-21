@@ -41,6 +41,14 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+function setAuthCookie(token: string | null) {
+  if (token) {
+    document.cookie = `sb-access-token=${token}; path=/; max-age=3600; SameSite=Lax`;
+  } else {
+    document.cookie = "sb-access-token=; path=/; max-age=0";
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -50,15 +58,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     try {
       const supabase = await getSupabaseBrowserClientAsync();
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (error) throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch(`/api/profile?userId=${encodeURIComponent(userId)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) return;
+      const data = await res.json();
       if (data) {
-        setProfile(data as Profile);
+        setProfile({
+          id: data.id,
+          userId: data.userId,
+          displayName: data.displayName,
+          role: data.role,
+          avatarUrl: data.avatarUrl,
+        });
       }
     } catch (err) {
       console.error("Failed to fetch profile:", err);
@@ -86,7 +100,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (currentSession?.user) {
           setSession(currentSession);
           setUser(currentSession.user);
+          setAuthCookie(currentSession.access_token);
           await fetchProfile(currentSession.user.id);
+        } else {
+          setAuthCookie(null);
         }
       } catch (err) {
         console.error("Auth init error:", err);
@@ -117,6 +134,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
               setSession(newSession);
               setUser(newSession?.user ?? null);
+              if (newSession?.access_token) {
+                setAuthCookie(newSession.access_token);
+              }
               if (newSession?.user) {
                 await fetchProfile(newSession.user.id);
               }
@@ -124,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setSession(null);
               setUser(null);
               setProfile(null);
+              setAuthCookie(null);
             }
           }
         );
@@ -148,6 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setSession(null);
       setProfile(null);
+      setAuthCookie(null);
     } catch (err) {
       console.error("Sign out error:", err);
     }
