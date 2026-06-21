@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 interface SupabaseConfig {
   url: string;
@@ -35,9 +29,7 @@ interface SupabaseConfigProviderProps {
   children: ReactNode;
 }
 
-export function SupabaseConfigProvider({
-  children,
-}: SupabaseConfigProviderProps) {
+export function SupabaseConfigProvider({ children }: SupabaseConfigProviderProps) {
   const [config, setConfig] = useState<SupabaseConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,12 +45,8 @@ export function SupabaseConfigProvider({
       .then((data) => {
         if (data.url && data.anonKey) {
           setConfig(data);
-          (
-            window as unknown as { __SUPABASE_CONFIG__: SupabaseConfig }
-          ).__SUPABASE_CONFIG__ = data;
-          window.dispatchEvent(
-            new CustomEvent(SUPABASE_CONFIG_READY_EVENT, { detail: data })
-          );
+          (window as unknown as { __SUPABASE_CONFIG__: SupabaseConfig }).__SUPABASE_CONFIG__ = data;
+          window.dispatchEvent(new CustomEvent(SUPABASE_CONFIG_READY_EVENT, { detail: data }));
         } else {
           throw new Error("Invalid config response");
         }

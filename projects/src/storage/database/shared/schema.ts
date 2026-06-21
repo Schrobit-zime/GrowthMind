@@ -3,7 +3,9 @@ import { sql } from "drizzle-orm";
 
 // ─── Users (extends Supabase auth.users) ───
 export const profiles = pgTable("profiles", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   userId: uuid("user_id").notNull().unique(),
   displayName: text("display_name").notNull(),
   role: text("role").notNull().default("user"), // 'user' | 'admin'
@@ -14,7 +16,9 @@ export const profiles = pgTable("profiles", {
 
 // ─── Supervision Relationships ───
 export const supervisionRelations = pgTable("supervision_relations", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   adminUserId: uuid("admin_user_id").notNull(),
   supervisedUserId: uuid("supervised_user_id").notNull(),
   active: boolean("active").notNull().default(true),
@@ -23,7 +27,9 @@ export const supervisionRelations = pgTable("supervision_relations", {
 
 // ─── Growth Records ───
 export const records = pgTable("records", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   userId: uuid("user_id").notNull(),
   timeDimension: text("time_dimension").notNull(), // 'daily' | 'weekly' | 'monthly' | 'semiannual' | 'annual' | 'morning' | 'noon' | 'evening' | 'custom'
   recordDate: text("record_date").notNull(), // ISO date string
@@ -51,7 +57,9 @@ export const records = pgTable("records", {
 
 // ─── Goals ───
 export const goals = pgTable("goals", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   userId: uuid("user_id").notNull(),
   name: text("name").notNull(),
   dimension: text("dimension").notNull(), // 'learning' | 'work' | 'life' | 'health' | 'mood'
@@ -66,7 +74,9 @@ export const goals = pgTable("goals", {
 
 // ─── Reminder Rules ───
 export const reminderRules = pgTable("reminder_rules", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   adminUserId: uuid("admin_user_id").notNull(),
   supervisedUserId: uuid("supervised_user_id").notNull(),
   ruleType: text("rule_type").notNull(), // 'no_record' | 'goal_lagging' | 'mood_drop' | 'custom'
@@ -79,7 +89,9 @@ export const reminderRules = pgTable("reminder_rules", {
 
 // ─── Analysis History ───
 export const analysisHistory = pgTable("analysis_history", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   userId: uuid("user_id").notNull(),
   timeRange: text("time_range").notNull(), // '7d' | '30d' | '90d' | 'custom'
   dimensions: jsonb("dimensions").notNull().default("[]"),
@@ -92,7 +104,9 @@ export const analysisHistory = pgTable("analysis_history", {
 
 // ─── Model Gateway Usage Log ───
 export const gatewayUsageLog = pgTable("gateway_usage_log", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   userId: uuid("user_id"),
   provider: text("provider").notNull(), // 'openai' | 'claude' | 'zhipu' | 'deepseek'
   model: text("model").notNull(),
@@ -105,7 +119,9 @@ export const gatewayUsageLog = pgTable("gateway_usage_log", {
 
 // ─── Email Templates ───
 export const emailTemplates = pgTable("email_templates", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   subject: text("subject").notNull(),
   body: text("body").notNull(),
@@ -117,6 +133,8 @@ export const emailTemplates = pgTable("email_templates", {
 
 // ─── Health Check ───
 export const healthCheck = pgTable("health_check", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }).defaultNow(),
 });

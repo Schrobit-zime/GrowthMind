@@ -81,10 +81,7 @@ function isDevelopment(): boolean {
   return process.env.NODE_ENV === "development";
 }
 
-export function handleApiError(
-  error: unknown,
-  context: string = "操作"
-): NextResponse {
+export function handleApiError(error: unknown, context: string = "操作"): NextResponse {
   console.error(`[API Error] ${context}:`, error);
 
   if (error instanceof AppError) {
@@ -98,7 +95,7 @@ export function handleApiError(
         error: message,
         ...(isDevelopment() && { code: error.code, details: error.details }),
       },
-      { status: error.statusCode }
+      { status: error.statusCode },
     );
   }
 
@@ -109,7 +106,7 @@ export function handleApiError(
         error: isDevelopment() ? `${context}失败: ${error.message}` : `${context}失败，请稍后重试`,
         ...(isDevelopment() && { stack: error.stack }),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -118,6 +115,6 @@ export function handleApiError(
       success: false,
       error: isDevelopment() ? `${context}失败: ${String(error)}` : `${context}失败，请稍后重试`,
     },
-    { status: 500 }
+    { status: 500 },
   );
 }

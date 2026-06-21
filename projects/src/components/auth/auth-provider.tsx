@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { getSupabaseBrowserClientAsync } from "@/lib/supabase-browser";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -68,7 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     try {
       const supabase = await getSupabaseBrowserClientAsync();
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const token = session?.access_token;
       const res = await fetch(`/api/profile?userId=${encodeURIComponent(userId)}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -143,27 +138,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function setupListener() {
       try {
         const supabase = await getSupabaseBrowserClientAsync();
-        const { data } = supabase.auth.onAuthStateChange(
-          async (event, newSession) => {
-            if (!mounted) return;
+        const { data } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+          if (!mounted) return;
 
-            if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-              setSession(newSession);
-              setUser(newSession?.user ?? null);
-              if (newSession?.access_token) {
-                setAuthCookie(newSession.access_token);
-              }
-              if (newSession?.user) {
-                await fetchProfile(newSession.user.id);
-              }
-            } else if (event === "SIGNED_OUT") {
-              setSession(null);
-              setUser(null);
-              setProfile(null);
-              setAuthCookie(null);
+          if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+            setSession(newSession);
+            setUser(newSession?.user ?? null);
+            if (newSession?.access_token) {
+              setAuthCookie(newSession.access_token);
             }
+            if (newSession?.user) {
+              await fetchProfile(newSession.user.id);
+            }
+          } else if (event === "SIGNED_OUT") {
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            setAuthCookie(null);
           }
-        );
+        });
         unsubscribe = data.subscription.unsubscribe;
       } catch (err) {
         console.error("Auth listener setup error:", err);
@@ -192,9 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{ user, session, profile, isLoading, signOut, refreshProfile }}
-    >
+    <AuthContext.Provider value={{ user, session, profile, isLoading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

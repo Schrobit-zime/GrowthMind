@@ -8,10 +8,7 @@ import { validateBody } from "@/lib/validations/validate";
 import { updateGoalSchema } from "@/lib/validations/goals";
 import { cacheGet, cacheSet, cacheDel, buildCacheKey } from "@/lib/cache";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
 
@@ -40,10 +37,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
 
@@ -81,7 +75,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
@@ -89,9 +83,7 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    await db
-      .delete(goals)
-      .where(and(eq(goals.id, id), eq(goals.userId, auth.user.id)));
+    await db.delete(goals).where(and(eq(goals.id, id), eq(goals.userId, auth.user.id)));
 
     await cacheDel(`growthmind:goals:${auth.user.id}*`);
 

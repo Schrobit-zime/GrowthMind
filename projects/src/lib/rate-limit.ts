@@ -27,7 +27,7 @@ function getClientIp(request: NextRequest): string {
  */
 export async function applyRateLimit(
   request: NextRequest,
-  config: RateLimitConfig
+  config: RateLimitConfig,
 ): Promise<boolean> {
   const redis = getRedisClient();
   if (!redis) return true; // Redis 不可用时放行

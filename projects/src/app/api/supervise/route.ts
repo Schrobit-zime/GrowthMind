@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const data = await db.query.supervisionRelations.findMany({
       where: and(
         eq(supervisionRelations.adminUserId, auth.user.id),
-        eq(supervisionRelations.active, true)
+        eq(supervisionRelations.active, true),
       ),
       with: { supervised: true },
       orderBy: desc(supervisionRelations.createdAt),
@@ -48,11 +48,13 @@ export async function POST(request: NextRequest) {
     const existing = await db
       .select({ id: supervisionRelations.id })
       .from(supervisionRelations)
-      .where(and(
-        eq(supervisionRelations.adminUserId, auth.user.id),
-        eq(supervisionRelations.supervisedUserId, body.supervisedUserId),
-        eq(supervisionRelations.active, true)
-      ))
+      .where(
+        and(
+          eq(supervisionRelations.adminUserId, auth.user.id),
+          eq(supervisionRelations.supervisedUserId, body.supervisedUserId),
+          eq(supervisionRelations.active, true),
+        ),
+      )
       .limit(1);
 
     if (existing.length) {

@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { success: false, error: parsed.error.issues[0]?.message || "请求参数无效" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -51,8 +51,11 @@ export async function POST(request: NextRequest) {
 
     const dimensionText = dimensions.join("、");
     const typeText =
-      analysisType === "trend" ? "趋势分析" :
-      analysisType === "assessment" ? "综合评估" : "优化建议";
+      analysisType === "trend"
+        ? "趋势分析"
+        : analysisType === "assessment"
+          ? "综合评估"
+          : "优化建议";
 
     const systemPrompt = `你是 GrowthMind 个人成长分析助手。根据用户提供的${dimensionText}维度数据，进行${typeText}。请给出专业、具体、可操作的分析和建议。`;
 
@@ -86,10 +89,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!gatewayResponse.ok) {
-      throw new AppError(
-        ErrorCode.AI_GATEWAY_ERROR,
-        "AI 分析服务暂时不可用"
-      );
+      throw new AppError(ErrorCode.AI_GATEWAY_ERROR, "AI 分析服务暂时不可用");
     }
 
     // 读取 SSE 流，累积内容并传递给客户端

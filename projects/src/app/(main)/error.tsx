@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function MainError({
@@ -14,13 +14,12 @@ export default function MainError({
     console.error("[MainError]", error);
   }, [error]);
 
-  const errorId = useMemo(
+  const [errorId] = useState(
     () =>
       `ERR-${Date.now().toString(36).toUpperCase()}-${Math.random()
         .toString(36)
         .substring(2, 6)
         .toUpperCase()}`,
-    []
   );
 
   return (
@@ -30,16 +29,12 @@ export default function MainError({
           <AlertTriangle className="w-6 h-6 text-destructive" />
         </div>
 
-        <h3 className="text-lg font-semibold text-foreground mb-2">
-          加载失败
-        </h3>
+        <h3 className="text-lg font-semibold text-foreground mb-2">加载失败</h3>
         <p className="text-sm text-muted-foreground mb-3">
           {error.message || "数据加载时发生错误"}
         </p>
 
-        <div className="text-xs text-muted-foreground/60 mb-5 font-mono">
-          {errorId}
-        </div>
+        <div className="text-xs text-muted-foreground/60 mb-5 font-mono">{errorId}</div>
 
         <button
           onClick={reset}

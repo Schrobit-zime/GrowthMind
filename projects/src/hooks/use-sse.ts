@@ -20,84 +20,86 @@ export function useSSE(options: UseSSEOptions) {
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const start = useCallback(async (body?: Record<string, unknown>) => {
-    if (!session?.access_token) {
-      setError("未登录");
-      options.onError?.("未登录");
-      return;
-    }
-    setText("");
-    setError(null);
-    setStreaming(true);
-    const ctrl = new AbortController();
-    abortRef.current = ctrl;
-    try {
-      const res = await fetch(options.url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-session": session.access_token,
-        },
-        body: body ? JSON.stringify(body) : undefined,
-        signal: ctrl.signal,
-      });
-      if (!res.ok || !res.body) {
-        const errText = await res.text();
-        let errMsg = `请求失败 (${res.status})`;
-        try {
-          const e = JSON.parse(errText);
-          if (e.error) errMsg = e.error;
-        } catch {
-          /* 非 JSON 错误信息，使用默认提示 */
-        }
-        throw new Error(errMsg);
+  const start = useCallback(
+    async (body?: Record<string, unknown>) => {
+      if (!session?.access_token) {
+        setError("未登录");
+        options.onError?.("未登录");
+        return;
       }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6).trim();
-            if (data === "[DONE]") continue;
-            try {
-              const parsed = JSON.parse(data);
-              const content =
-                parsed.choices?.[0]?.delta?.content ||
-                parsed.content?.[0]?.text ||
-                "";
-              if (content) {
-                acc += content;
-                setText(acc);
-                options.onChunk?.(content, acc);
-              }
-            } catch {
-              if (data && data !== "[DONE]") {
-                acc += data;
-                setText(acc);
-                options.onChunk?.(data, acc);
+      setText("");
+      setError(null);
+      setStreaming(true);
+      const ctrl = new AbortController();
+      abortRef.current = ctrl;
+      try {
+        const res = await fetch(options.url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-session": session.access_token,
+          },
+          body: body ? JSON.stringify(body) : undefined,
+          signal: ctrl.signal,
+        });
+        if (!res.ok || !res.body) {
+          const errText = await res.text();
+          let errMsg = `请求失败 (${res.status})`;
+          try {
+            const e = JSON.parse(errText);
+            if (e.error) errMsg = e.error;
+          } catch {
+            /* 非 JSON 错误信息，使用默认提示 */
+          }
+          throw new Error(errMsg);
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let acc = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n");
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6).trim();
+              if (data === "[DONE]") continue;
+              try {
+                const parsed = JSON.parse(data);
+                const content =
+                  parsed.choices?.[0]?.delta?.content || parsed.content?.[0]?.text || "";
+                if (content) {
+                  acc += content;
+                  setText(acc);
+                  options.onChunk?.(content, acc);
+                }
+              } catch {
+                if (data && data !== "[DONE]") {
+                  acc += data;
+                  setText(acc);
+                  options.onChunk?.(data, acc);
+                }
               }
             }
           }
         }
-      }
-      setStreaming(false);
-      options.onDone?.(acc);
-    } catch (err: any) {
-      if (err.name === "AbortError") {
         setStreaming(false);
-        return;
+        options.onDone?.(acc);
+      } catch (err: unknown) {
+        const e = err as { name?: string; message?: string };
+        if (e.name === "AbortError") {
+          setStreaming(false);
+          return;
+        }
+        const msg = e.message || "流式请求失败";
+        setError(msg);
+        setStreaming(false);
+        options.onError?.(msg);
       }
-      const msg = err.message || "流式请求失败";
-      setError(msg);
-      setStreaming(false);
-      options.onError?.(msg);
-    }
-  }, [options.url, session?.access_token, options.onChunk, options.onDone, options.onError]);
+    },
+    [options.url, session?.access_token, options.onChunk, options.onDone, options.onError, options],
+  );
 
   const stop = useCallback(() => {
     abortRef.current?.abort();

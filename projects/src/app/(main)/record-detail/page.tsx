@@ -21,16 +21,12 @@ interface Props {
   searchParams: Promise<{ record_id?: string }>;
 }
 
-export async function generateMetadata({
-  searchParams,
-}: Props): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { record_id } = await searchParams;
-  if (!record_id)
-    return { title: "记录详情 - GrowthMind" };
+  if (!record_id) return { title: "记录详情 - GrowthMind" };
 
   const record = await getRecordById(record_id);
-  if (!record)
-    return { title: "记录不存在 - GrowthMind" };
+  if (!record) return { title: "记录不存在 - GrowthMind" };
 
   return {
     title: `${timeDimLabel[record.timeDimension] || record.timeDimension} · ${record.recordDate} - GrowthMind`,
@@ -88,16 +84,12 @@ export default async function RecordDetailPage({ searchParams }: Props) {
             <span className="px-3 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary">
               {timeDimLabel[record.timeDimension] || record.timeDimension}
             </span>
-            <span className="text-sm text-muted-foreground">
-              {record.recordDate}
-            </span>
+            <span className="text-sm text-muted-foreground">{record.recordDate}</span>
             {record.moodScore != null && (
               <div className="flex items-center gap-1.5 ml-auto">
                 <span className="text-xs text-muted-foreground">心情</span>
                 <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-sm font-bold text-primary">
-                    {record.moodScore}
-                  </span>
+                  <span className="text-sm font-bold text-primary">{record.moodScore}</span>
                 </div>
                 <span className="text-xs text-muted-foreground">/10</span>
               </div>
@@ -137,17 +129,13 @@ export default async function RecordDetailPage({ searchParams }: Props) {
               {learning.hours !== undefined && (
                 <div>
                   <span className="text-muted-foreground">学习时长</span>
-                  <p className="text-foreground font-medium">
-                    {String(learning.hours)} 小时
-                  </p>
+                  <p className="text-foreground font-medium">{String(learning.hours)} 小时</p>
                 </div>
               )}
               {learning.content ? (
                 <div>
                   <span className="text-muted-foreground">学习内容</span>
-                  <p className="text-foreground font-medium">
-                    {String(learning.content)}
-                  </p>
+                  <p className="text-foreground font-medium">{String(learning.content)}</p>
                 </div>
               ) : null}
               {learning.mastery !== undefined && (
@@ -162,9 +150,7 @@ export default async function RecordDetailPage({ searchParams }: Props) {
                         }}
                       />
                     </div>
-                    <span className="text-primary font-medium">
-                      {String(learning.mastery)}%
-                    </span>
+                    <span className="text-primary font-medium">{String(learning.mastery)}%</span>
                   </div>
                 </div>
               )}
@@ -185,9 +171,7 @@ export default async function RecordDetailPage({ searchParams }: Props) {
               {work.tasks !== undefined && (
                 <div>
                   <span className="text-muted-foreground">完成任务</span>
-                  <p className="text-foreground font-medium">
-                    {String(work.tasks)} 个
-                  </p>
+                  <p className="text-foreground font-medium">{String(work.tasks)} 个</p>
                 </div>
               )}
               {work.efficiency !== undefined && (
@@ -202,9 +186,7 @@ export default async function RecordDetailPage({ searchParams }: Props) {
                         }}
                       />
                     </div>
-                    <span className="text-success font-medium">
-                      {String(work.efficiency)}%
-                    </span>
+                    <span className="text-success font-medium">{String(work.efficiency)}%</span>
                   </div>
                 </div>
               )}
@@ -225,25 +207,19 @@ export default async function RecordDetailPage({ searchParams }: Props) {
               {health.weight !== undefined && (
                 <div>
                   <span className="text-muted-foreground">体重</span>
-                  <p className="text-foreground font-medium">
-                    {String(health.weight)} kg
-                  </p>
+                  <p className="text-foreground font-medium">{String(health.weight)} kg</p>
                 </div>
               )}
               {health.sleepQuality !== undefined && (
                 <div>
                   <span className="text-muted-foreground">睡眠质量</span>
-                  <p className="text-foreground font-medium">
-                    {String(health.sleepQuality)}/10
-                  </p>
+                  <p className="text-foreground font-medium">{String(health.sleepQuality)}/10</p>
                 </div>
               )}
               {health.energy !== undefined && (
                 <div>
                   <span className="text-muted-foreground">精力水平</span>
-                  <p className="text-foreground font-medium">
-                    {String(health.energy)}/10
-                  </p>
+                  <p className="text-foreground font-medium">{String(health.energy)}/10</p>
                 </div>
               )}
             </div>
@@ -263,17 +239,13 @@ export default async function RecordDetailPage({ searchParams }: Props) {
               {mood.score !== undefined && (
                 <div>
                   <span className="text-muted-foreground">情绪评分</span>
-                  <p className="text-foreground font-medium text-lg">
-                    {String(mood.score)}/10
-                  </p>
+                  <p className="text-foreground font-medium text-lg">{String(mood.score)}/10</p>
                 </div>
               )}
               {mood.stress !== undefined && (
                 <div>
                   <span className="text-muted-foreground">压力等级</span>
-                  <p className="text-foreground font-medium">
-                    {String(mood.stress)}/5
-                  </p>
+                  <p className="text-foreground font-medium">{String(mood.stress)}/5</p>
                 </div>
               )}
             </div>

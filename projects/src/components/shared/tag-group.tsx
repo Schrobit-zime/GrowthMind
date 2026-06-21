@@ -13,7 +13,13 @@ interface TagGroupProps {
   className?: string;
 }
 
-export function TagGroup({ items, selectedKeys, onToggle, multiSelect = true, className }: TagGroupProps) {
+export function TagGroup({
+  items,
+  selectedKeys,
+  onToggle,
+  multiSelect = true,
+  className,
+}: TagGroupProps) {
   const handleClick = (key: string) => {
     if (!multiSelect) {
       onToggle(key);

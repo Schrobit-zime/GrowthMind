@@ -8,10 +8,7 @@ import { validateBody } from "@/lib/validations/validate";
 import { updateRecordSchema } from "@/lib/validations/records";
 import { cacheGet, cacheSet, cacheDel, buildCacheKey } from "@/lib/cache";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
 
@@ -40,10 +37,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
 
@@ -85,7 +79,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
@@ -93,9 +87,7 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    await db
-      .delete(records)
-      .where(and(eq(records.id, id), eq(records.userId, auth.user.id)));
+    await db.delete(records).where(and(eq(records.id, id), eq(records.userId, auth.user.id)));
 
     await cacheDel(`growthmind:records:${auth.user.id}*`);
 

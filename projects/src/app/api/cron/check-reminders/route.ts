@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
 import { eq, and, gte, desc, inArray } from "drizzle-orm";
 import { handleApiError } from "@/lib/errors";
-import { z } from "zod";
 
 const { reminderRules, records, goals } = schema;
 
@@ -13,12 +12,6 @@ type ReminderRule = typeof reminderRules.$inferSelect;
 type NoRecordCondition = { days?: number };
 type GoalLaggingCondition = { threshold?: number };
 type MoodDropCondition = { days?: number };
-type RuleCondition = NoRecordCondition | GoalLaggingCondition | MoodDropCondition;
-
-/** Cron 请求查询参数校验 */
-const cronQuerySchema = z.object({
-  // 当前无额外查询参数，保留扩展
-});
 
 /**
  * 验证 Cron 请求是否携带正确的 CRON_SECRET
@@ -38,12 +31,16 @@ function verifyCronRequest(request: NextRequest): boolean {
 /**
  * 批量检查「无记录」规则：一次查询所有受监督用户，消除 N+1 问题
  */
-async function checkNoRecordRules(rules: ReminderRule[]): Promise<{ ruleId: string; triggered: boolean }[]> {
+async function checkNoRecordRules(
+  rules: ReminderRule[],
+): Promise<{ ruleId: string; triggered: boolean }[]> {
   // 使用最大天数一次性查询覆盖所有规则
-  const maxDays = Math.max(...rules.map((r) => {
-    const cond = r.condition as NoRecordCondition;
-    return cond?.days ?? 3;
-  }));
+  const maxDays = Math.max(
+    ...rules.map((r) => {
+      const cond = r.condition as NoRecordCondition;
+      return cond?.days ?? 3;
+    }),
+  );
   const since = new Date();
   since.setDate(since.getDate() - maxDays);
   const sinceStr = since.toISOString().split("T")[0];
@@ -52,12 +49,7 @@ async function checkNoRecordRules(rules: ReminderRule[]): Promise<{ ruleId: stri
   const recent = await db
     .select({ userId: records.userId, recordDate: records.recordDate })
     .from(records)
-    .where(
-      and(
-        inArray(records.userId, userIds),
-        gte(records.recordDate, sinceStr)
-      )
-    );
+    .where(and(inArray(records.userId, userIds), gte(records.recordDate, sinceStr)));
 
   // 按用户分组记录日期
   const recordsByUser = new Map<string, Set<string>>();
@@ -83,18 +75,15 @@ async function checkNoRecordRules(rules: ReminderRule[]): Promise<{ ruleId: stri
 /**
  * 批量检查「目标滞后」规则：一次查询所有活跃目标，消除 N+1 问题
  */
-async function checkGoalLaggingRules(rules: ReminderRule[]): Promise<{ ruleId: string; triggered: boolean }[]> {
+async function checkGoalLaggingRules(
+  rules: ReminderRule[],
+): Promise<{ ruleId: string; triggered: boolean }[]> {
   const userIds = [...new Set(rules.map((r) => r.supervisedUserId))];
 
   const activeGoals = await db
     .select()
     .from(goals)
-    .where(
-      and(
-        inArray(goals.userId, userIds),
-        eq(goals.status, "active")
-      )
-    );
+    .where(and(inArray(goals.userId, userIds), eq(goals.status, "active")));
 
   // 按用户分组目标
   const goalsByUser = new Map<string, typeof activeGoals>();
@@ -108,7 +97,7 @@ async function checkGoalLaggingRules(rules: ReminderRule[]): Promise<{ ruleId: s
     const threshold = cond?.threshold ?? 0.5;
     const userGoals = goalsByUser.get(rule.supervisedUserId) ?? [];
     const isLagging = userGoals.some(
-      (g) => g.targetValue !== 0 && g.currentValue / g.targetValue < threshold
+      (g) => g.targetValue !== 0 && g.currentValue / g.targetValue < threshold,
     );
     return { ruleId: rule.id, triggered: isLagging };
   });
@@ -117,12 +106,16 @@ async function checkGoalLaggingRules(rules: ReminderRule[]): Promise<{ ruleId: s
 /**
  * 批量检查「情绪持续下降」规则：一次查询所有情绪记录，消除 N+1 问题
  */
-async function checkMoodDropRules(rules: ReminderRule[]): Promise<{ ruleId: string; triggered: boolean }[]> {
+async function checkMoodDropRules(
+  rules: ReminderRule[],
+): Promise<{ ruleId: string; triggered: boolean }[]> {
   // 使用最大天数一次性查询覆盖所有规则
-  const maxDays = Math.max(...rules.map((r) => {
-    const cond = r.condition as MoodDropCondition;
-    return cond?.days ?? 5;
-  }));
+  const maxDays = Math.max(
+    ...rules.map((r) => {
+      const cond = r.condition as MoodDropCondition;
+      return cond?.days ?? 5;
+    }),
+  );
   const since = new Date();
   since.setDate(since.getDate() - maxDays);
   const sinceStr = since.toISOString().split("T")[0];
@@ -135,12 +128,7 @@ async function checkMoodDropRules(rules: ReminderRule[]): Promise<{ ruleId: stri
       recordDate: records.recordDate,
     })
     .from(records)
-    .where(
-      and(
-        inArray(records.userId, userIds),
-        gte(records.recordDate, sinceStr)
-      )
-    )
+    .where(and(inArray(records.userId, userIds), gte(records.recordDate, sinceStr)))
     .orderBy(desc(records.recordDate));
 
   // 按用户分组情绪记录
@@ -157,8 +145,9 @@ async function checkMoodDropRules(rules: ReminderRule[]): Promise<{ ruleId: stri
     ruleSince.setDate(ruleSince.getDate() - ruleDays);
     const ruleSinceStr = ruleSince.toISOString().split("T")[0];
 
-    const userMoods = (moodsByUser.get(rule.supervisedUserId) ?? [])
-      .filter((m) => m.recordDate >= ruleSinceStr);
+    const userMoods = (moodsByUser.get(rule.supervisedUserId) ?? []).filter(
+      (m) => m.recordDate >= ruleSinceStr,
+    );
 
     if (userMoods.length < 3) return { ruleId: rule.id, triggered: false };
 
@@ -186,7 +175,7 @@ function sendNotification(rule: ReminderRule, ruleType: string): void {
     switch (action) {
       case "notify_admin":
         console.log(
-          `[提醒] admin=${rule.adminUserId} 用户=${rule.supervisedUserId} 触发: ${ruleType}`
+          `[提醒] admin=${rule.adminUserId} 用户=${rule.supervisedUserId} 触发: ${ruleType}`,
         );
         break;
       case "notify_user":
@@ -210,10 +199,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const rules = await db
-      .select()
-      .from(reminderRules)
-      .where(eq(reminderRules.enabled, true));
+    const rules = await db.select().from(reminderRules).where(eq(reminderRules.enabled, true));
 
     if (!rules.length) {
       return NextResponse.json({
@@ -242,7 +228,7 @@ export async function GET(request: NextRequest) {
           default:
             return [];
         }
-      })
+      }),
     );
 
     const allResults = checkResults.flat();

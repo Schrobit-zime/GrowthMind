@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { success: false, error: parsed.error.issues[0]?.message || "参数无效" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
       .where(
         or(
           sql`${profiles.displayName} ILIKE ${pattern}`,
-          sql`${profiles.userId}::text ILIKE ${pattern}`
-        )
+          sql`${profiles.userId}::text ILIKE ${pattern}`,
+        ),
       )
       .limit(10);
 

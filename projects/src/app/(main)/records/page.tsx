@@ -5,10 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Search,
-  Plus,
-} from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { ExportButton } from "@/components/shared/export-button";
 import { RecordCard } from "@/components/cards/record-card";
 import { PageHeader } from "@/components/shared/page-header";
@@ -113,11 +110,7 @@ export default function RecordsPage() {
       <PageHeader title="记录列表" description="浏览和管理你的所有成长记录" />
 
       <div className="space-y-4">
-        <TagGroup
-          items={tagItems}
-          selectedKeys={selectedDimensions}
-          onToggle={toggleDimension}
-        />
+        <TagGroup items={tagItems} selectedKeys={selectedDimensions} onToggle={toggleDimension} />
 
         <div className="flex flex-col sm:flex-row gap-3 items-center">
           <div className="relative flex-1 max-w-xs">

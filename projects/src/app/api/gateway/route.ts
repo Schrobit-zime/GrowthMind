@@ -18,22 +18,43 @@ interface GatewayRequest {
 const gatewayBodySchema = z.object({
   provider: z.enum(["deepseek", "openai", "claude", "zhipu"]),
   model: z.string().optional(),
-  messages: z.array(
-    z.object({
-      role: z.enum(["system", "user", "assistant"]),
-      content: z.string(),
-    })
-  ).min(1, "至少需要一条消息"),
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["system", "user", "assistant"]),
+        content: z.string(),
+      }),
+    )
+    .min(1, "至少需要一条消息"),
   stream: z.boolean().optional(),
   temperature: z.number().optional(),
   max_tokens: z.number().optional(),
 });
 
-const providerConfigs: Record<string, { baseUrl: string; defaultModel: string; apiKeyEnv: string }> = {
-  deepseek: { baseUrl: "https://api.deepseek.com/v1", defaultModel: "deepseek-chat", apiKeyEnv: "DEEPSEEK_API_KEY" },
-  openai: { baseUrl: "https://api.openai.com/v1", defaultModel: "gpt-4o-mini", apiKeyEnv: "OPENAI_API_KEY" },
-  claude: { baseUrl: "https://api.anthropic.com/v1", defaultModel: "claude-3-haiku-20240307", apiKeyEnv: "ANTHROPIC_API_KEY" },
-  zhipu: { baseUrl: "https://open.bigmodel.cn/api/paas/v4", defaultModel: "glm-4-flash", apiKeyEnv: "ZHIPU_API_KEY" },
+const providerConfigs: Record<
+  string,
+  { baseUrl: string; defaultModel: string; apiKeyEnv: string }
+> = {
+  deepseek: {
+    baseUrl: "https://api.deepseek.com/v1",
+    defaultModel: "deepseek-chat",
+    apiKeyEnv: "DEEPSEEK_API_KEY",
+  },
+  openai: {
+    baseUrl: "https://api.openai.com/v1",
+    defaultModel: "gpt-4o-mini",
+    apiKeyEnv: "OPENAI_API_KEY",
+  },
+  claude: {
+    baseUrl: "https://api.anthropic.com/v1",
+    defaultModel: "claude-3-haiku-20240307",
+    apiKeyEnv: "ANTHROPIC_API_KEY",
+  },
+  zhipu: {
+    baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+    defaultModel: "glm-4-flash",
+    apiKeyEnv: "ZHIPU_API_KEY",
+  },
 };
 
 /** 简单成本计算函数：根据厂商和 token 数计算费用（美元） */
@@ -57,7 +78,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { success: false, error: parsed.error.issues[0]?.message || "缺少必要参数" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const validatedBody = parsed.data;
@@ -69,7 +90,10 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env[config.apiKeyEnv];
     if (!apiKey) {
-      return NextResponse.json({ success: false, error: `${validatedBody.provider} API Key 未配置` }, { status: 500 });
+      return NextResponse.json(
+        { success: false, error: `${validatedBody.provider} API Key 未配置` },
+        { status: 500 },
+      );
     }
 
     const model = validatedBody.model || config.defaultModel;
@@ -83,9 +107,10 @@ export async function POST(request: NextRequest) {
     };
     if (validatedBody.max_tokens) fetchBody.max_tokens = validatedBody.max_tokens;
 
-    const endpoint = validatedBody.provider === "claude"
-      ? `${config.baseUrl}/messages`
-      : `${config.baseUrl}/chat/completions`;
+    const endpoint =
+      validatedBody.provider === "claude"
+        ? `${config.baseUrl}/messages`
+        : `${config.baseUrl}/chat/completions`;
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -102,21 +127,19 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new AppError(
-        ErrorCode.AI_PROVIDER_ERROR,
-        "AI 模型调用失败",
-        { provider: validatedBody.provider, status: response.status }
-      );
+      await response.text(); // 消费响应体
+      throw new AppError(ErrorCode.AI_PROVIDER_ERROR, "AI 模型调用失败", {
+        provider: validatedBody.provider,
+        status: response.status,
+      });
     }
 
     if (stream) {
       // 读取流式响应，累积内容并传递给客户端
       const reader = response.body!.getReader();
       const decoder = new TextDecoder();
-      let accumulatedText = "";
-      let promptTokens = 0;
-      let completionTokens = 0;
+      const promptTokens = 0;
+      const completionTokens = 0;
 
       const outStream = new ReadableStream({
         async start(controller) {
@@ -125,7 +148,6 @@ export async function POST(request: NextRequest) {
               const { done, value } = await reader.read();
               if (done) break;
               const chunk = decoder.decode(value, { stream: true });
-              accumulatedText += chunk;
               controller.enqueue(value);
             }
             controller.close();

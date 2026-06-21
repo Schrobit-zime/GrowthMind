@@ -14,12 +14,7 @@ describe("ErrorState 组件", () => {
   });
 
   it("应该渲染自定义标题和消息", () => {
-    render(
-      <ErrorState
-        title="自定义错误"
-        message="自定义错误消息"
-      />
-    );
+    render(<ErrorState title="自定义错误" message="自定义错误消息" />);
     expect(screen.getByText("自定义错误")).toBeInTheDocument();
     expect(screen.getByText("自定义错误消息")).toBeInTheDocument();
   });

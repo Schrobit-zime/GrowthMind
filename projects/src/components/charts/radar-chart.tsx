@@ -36,9 +36,7 @@ function CustomTooltip({
   return (
     <div style={CHART_TOOLTIP_STYLE} className="px-3 py-2 text-xs shadow-xl">
       <p className="text-white/80">{item.name}</p>
-      <p className="text-white font-medium">
-        {(item.value * 100).toFixed(0)}%
-      </p>
+      <p className="text-white font-medium">{(item.value * 100).toFixed(0)}%</p>
     </div>
   );
 }
@@ -66,20 +64,9 @@ const RadarChartComponent = React.memo(function RadarChartComponent({
         outerRadius="75%"
         margin={{ top: 16, right: 16, bottom: 16, left: 16 }}
       >
-        <PolarGrid
-          stroke="rgba(255,255,255,0.08)"
-          strokeWidth={1}
-        />
-        <PolarAngleAxis
-          dataKey="name"
-          tick={{ fill: "rgba(154, 167, 199, 0.8)", fontSize: 12 }}
-        />
-        <PolarRadiusAxis
-          angle={90}
-          domain={[0, maxValue]}
-          tick={false}
-          axisLine={false}
-        />
+        <PolarGrid stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+        <PolarAngleAxis dataKey="name" tick={{ fill: "rgba(154, 167, 199, 0.8)", fontSize: 12 }} />
+        <PolarRadiusAxis angle={90} domain={[0, maxValue]} tick={false} axisLine={false} />
         <Tooltip content={<CustomTooltip />} />
         <Radar
           name="综合评分"

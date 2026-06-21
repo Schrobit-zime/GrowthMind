@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, RefreshCw, Home, ArrowLeft } from "lucide-react";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 
 export default function Error({
   error,
@@ -15,13 +15,12 @@ export default function Error({
     console.error(error);
   }, [error]);
 
-  const errorId = useMemo(
+  const [errorId] = useState(
     () =>
       `ERR-${Date.now().toString(36).toUpperCase()}-${Math.random()
         .toString(36)
         .substring(2, 6)
         .toUpperCase()}`,
-    []
   );
 
   return (
@@ -31,16 +30,12 @@ export default function Error({
           <AlertTriangle className="w-8 h-8 text-destructive" />
         </div>
 
-        <h2 className="text-xl font-bold text-foreground mb-2">
-          出了点问题
-        </h2>
+        <h2 className="text-xl font-bold text-foreground mb-2">出了点问题</h2>
         <p className="text-sm text-muted-foreground mb-4">
           {error.message || "页面加载时发生错误，请稍后重试。"}
         </p>
 
-        <div className="text-xs text-muted-foreground/60 mb-6 font-mono">
-          错误ID: {errorId}
-        </div>
+        <div className="text-xs text-muted-foreground/60 mb-6 font-mono">错误ID: {errorId}</div>
 
         <div className="flex items-center justify-center gap-3">
           <button

@@ -5,7 +5,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { useSSE } from "@/hooks/use-sse";
 import { Sparkles, Clock, Square, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 const timeRanges = [
   { label: "近7天", value: "7d" },
@@ -14,7 +14,11 @@ const timeRanges = [
 ];
 const dimensionOptions = ["学习", "工作", "生活", "身体", "心情"];
 const dimensionValues: Record<string, string> = {
-  学习: "learning", 工作: "work", 生活: "life", 身体: "health", 心情: "mood",
+  学习: "learning",
+  工作: "work",
+  生活: "life",
+  身体: "health",
+  心情: "mood",
 };
 const analysisTypes = [
   { label: "趋势分析", value: "trend" },
@@ -61,8 +65,10 @@ export default function AnalysisPage() {
       });
       const json = await res.json();
       if (json.success) setHistory(json.data || []);
-    } catch { /* silent */ }
-  }, [session?.access_token]);
+    } catch {
+      /* silent */
+    }
+  }, [session]);
 
   useEffect(() => {
     fetchHistory();
@@ -129,8 +135,19 @@ export default function AnalysisPage() {
             <label className="block text-sm font-medium text-foreground mb-2">时间范围</label>
             <div className="flex flex-wrap gap-2">
               {timeRanges.map((tr) => (
-                <Button key={tr.value} variant="ghost" size="sm" onClick={() => setTimeRange(tr.value)}
-                  className={timeRange === tr.value ? "bg-primary text-primary-foreground" : "bg-surface-container text-muted-foreground"}>{tr.label}</Button>
+                <Button
+                  key={tr.value}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setTimeRange(tr.value)}
+                  className={
+                    timeRange === tr.value
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-surface-container text-muted-foreground"
+                  }
+                >
+                  {tr.label}
+                </Button>
               ))}
             </div>
           </div>
@@ -139,8 +156,19 @@ export default function AnalysisPage() {
             <label className="block text-sm font-medium text-foreground mb-2">分析维度</label>
             <div className="flex flex-wrap gap-2">
               {dimensionOptions.map((dim) => (
-                <Button key={dim} variant="ghost" size="sm" onClick={() => toggleDimension(dim)}
-                  className={selectedDimensions.includes(dim) ? "bg-primary text-primary-foreground" : "bg-surface-container text-muted-foreground"}>{dim}</Button>
+                <Button
+                  key={dim}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleDimension(dim)}
+                  className={
+                    selectedDimensions.includes(dim)
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-surface-container text-muted-foreground"
+                  }
+                >
+                  {dim}
+                </Button>
               ))}
             </div>
           </div>
@@ -149,47 +177,69 @@ export default function AnalysisPage() {
             <label className="block text-sm font-medium text-foreground mb-2">分析类型</label>
             <div className="flex flex-wrap gap-2">
               {analysisTypes.map((at) => (
-                <Button key={at.value} variant="ghost" size="sm" onClick={() => setAnalysisType(at.value)}
-                  className={analysisType === at.value ? "bg-primary text-primary-foreground" : "bg-surface-container text-muted-foreground"}>{at.label}</Button>
+                <Button
+                  key={at.value}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAnalysisType(at.value)}
+                  className={
+                    analysisType === at.value
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-surface-container text-muted-foreground"
+                  }
+                >
+                  {at.label}
+                </Button>
               ))}
             </div>
           </div>
 
-        {noDataWarning && (
-          <div className="bg-amber-400/10 border border-amber-400/20 rounded-lg p-4">
-            <p className="text-sm text-amber-400">⚠️ 该时间范围内暂无记录数据，请先记录后再进行分析。</p>
-          </div>
-        )}
-
-        {sseError && (
-          <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4">
-            <p className="text-sm text-red-400">{sseError}</p>
-          </div>
-        )}
-
-        <div className="flex gap-3">
-          {streaming ? (
-            <Button onClick={stop} variant="ghost"
-              className="flex-1 py-3.5 bg-red-500/20 border border-red-400/30 text-red-400 font-semibold rounded-xl hover:bg-red-500/30 h-12">
-              <Square className="w-5 h-5" />
-              停止生成
-            </Button>
-          ) : (
-            <Button onClick={handleAnalyze} disabled={isLoading}
-              className="flex-1 py-3.5 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-xl shadow-float hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed h-12">
-              <Sparkles className="w-5 h-5" />
-              {fetchingRecords ? "获取数据中..." : result ? "重新生成" : "开始分析"}
-            </Button>
+          {noDataWarning && (
+            <div className="bg-amber-400/10 border border-amber-400/20 rounded-lg p-4">
+              <p className="text-sm text-amber-400">
+                ⚠️ 该时间范围内暂无记录数据，请先记录后再进行分析。
+              </p>
+            </div>
           )}
-          {result && !streaming && (
-            <Button onClick={reset} variant="ghost"
-              className="px-4 py-3.5 bg-surface-container border border-border/20 text-muted-foreground font-semibold rounded-xl hover:bg-surface/60 h-12">
-              <RefreshCw className="w-4 h-4" />
-              清空
-            </Button>
+
+          {sseError && (
+            <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4">
+              <p className="text-sm text-red-400">{sseError}</p>
+            </div>
           )}
-        </div>
-      </CardContent>
+
+          <div className="flex gap-3">
+            {streaming ? (
+              <Button
+                onClick={stop}
+                variant="ghost"
+                className="flex-1 py-3.5 bg-red-500/20 border border-red-400/30 text-red-400 font-semibold rounded-xl hover:bg-red-500/30 h-12"
+              >
+                <Square className="w-5 h-5" />
+                停止生成
+              </Button>
+            ) : (
+              <Button
+                onClick={handleAnalyze}
+                disabled={isLoading}
+                className="flex-1 py-3.5 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-xl shadow-float hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed h-12"
+              >
+                <Sparkles className="w-5 h-5" />
+                {fetchingRecords ? "获取数据中..." : result ? "重新生成" : "开始分析"}
+              </Button>
+            )}
+            {result && !streaming && (
+              <Button
+                onClick={reset}
+                variant="ghost"
+                className="px-4 py-3.5 bg-surface-container border border-border/20 text-muted-foreground font-semibold rounded-xl hover:bg-surface/60 h-12"
+              >
+                <RefreshCw className="w-4 h-4" />
+                清空
+              </Button>
+            )}
+          </div>
+        </CardContent>
       </Card>
 
       {result && (
@@ -197,7 +247,9 @@ export default function AnalysisPage() {
           <CardContent className="pt-6">
             <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
               {result}
-              {streaming && <span className="inline-block w-2 h-4 bg-primary ml-0.5 animate-pulse" />}
+              {streaming && (
+                <span className="inline-block w-2 h-4 bg-primary ml-0.5 animate-pulse" />
+              )}
             </div>
           </CardContent>
         </Card>
@@ -208,17 +260,26 @@ export default function AnalysisPage() {
           <h2 className="text-lg font-semibold text-foreground mb-4">历史分析</h2>
           <div className="space-y-3">
             {history.map((item) => (
-              <div key={item.id}
-                className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-4 hover:bg-surface/60 transition-all cursor-pointer">
+              <div
+                key={item.id}
+                className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-4 hover:bg-surface/60 transition-all cursor-pointer"
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <span className="px-2 py-0.5 text-xs font-medium rounded-md bg-primary/10 text-primary">
-                    {item.analysisType === "trend" ? "趋势分析" : item.analysisType === "assessment" ? "综合评估" : "优化建议"}
+                    {item.analysisType === "trend"
+                      ? "趋势分析"
+                      : item.analysisType === "assessment"
+                        ? "综合评估"
+                        : "优化建议"}
                   </span>
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {new Date(item.created_at).toLocaleDateString("zh-CN")}
+                    <Clock className="w-3 h-3" />{" "}
+                    {new Date(item.created_at).toLocaleDateString("zh-CN")}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">{item.result?.slice(0, 200)}...</p>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {item.result?.slice(0, 200)}...
+                </p>
               </div>
             ))}
           </div>

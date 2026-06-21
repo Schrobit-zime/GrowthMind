@@ -18,11 +18,7 @@ export function ThemeToggle() {
       className="p-2 rounded-lg backdrop-blur-md bg-white/5 dark:bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
       aria-label="切换主题"
     >
-      {theme === "dark" ? (
-        <Sun className="w-4 h-4" />
-      ) : (
-        <Moon className="w-4 h-4" />
-      )}
+      {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
     </button>
   );
 }

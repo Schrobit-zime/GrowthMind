@@ -4,10 +4,29 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useRouter } from "next/navigation";
-import { Users, UserCheck, FileText, Bell, Search, X, UserPlus, UserX, Loader2 } from "lucide-react";
+import {
+  Users,
+  UserCheck,
+  FileText,
+  Bell,
+  Search,
+  X,
+  UserPlus,
+  UserX,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { StatCard } from "@/components/cards/stat-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -138,17 +157,44 @@ export default function SupervisePage() {
     <div className="p-4 lg:p-6 space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between">
         <PageHeader title="监督面板" description="管理被监督用户，查看成长动态" />
-        <Link href="/supervise-rules" className="flex items-center gap-2 px-4 py-2 bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl text-sm font-medium text-foreground hover:bg-surface/60 transition-all">
+        <Link
+          href="/supervise-rules"
+          className="flex items-center gap-2 px-4 py-2 bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl text-sm font-medium text-foreground hover:bg-surface/60 transition-all"
+        >
           <Bell className="w-4 h-4" /> 提醒规则
         </Link>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "监督人数", value: stats.total, icon: Users, color: "text-blue-400", bg: "bg-blue-400/10" },
-          { label: "活跃人数", value: stats.active, icon: UserCheck, color: "text-emerald-400", bg: "bg-emerald-400/10" },
-          { label: "今日已记录", value: "—", icon: FileText, color: "text-amber-400", bg: "bg-amber-400/10" },
-          { label: "触发提醒", value: "—", icon: Bell, color: "text-rose-400", bg: "bg-rose-400/10" },
+          {
+            label: "监督人数",
+            value: stats.total,
+            icon: Users,
+            color: "text-blue-400",
+            bg: "bg-blue-400/10",
+          },
+          {
+            label: "活跃人数",
+            value: stats.active,
+            icon: UserCheck,
+            color: "text-emerald-400",
+            bg: "bg-emerald-400/10",
+          },
+          {
+            label: "今日已记录",
+            value: "—",
+            icon: FileText,
+            color: "text-amber-400",
+            bg: "bg-amber-400/10",
+          },
+          {
+            label: "触发提醒",
+            value: "—",
+            icon: Bell,
+            color: "text-rose-400",
+            bg: "bg-rose-400/10",
+          },
         ].map((s) => (
           <StatCard
             key={s.label}
@@ -179,22 +225,37 @@ export default function SupervisePage() {
       ) : (
         <div className="space-y-3">
           {usersList.map((user) => (
-            <div key={user.id} className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-4 hover:bg-surface/60 transition-all group">
+            <div
+              key={user.id}
+              className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-4 hover:bg-surface/60 transition-all group"
+            >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary flex-shrink-0">
-                  {(user.supervised?.displayName || user.supervisedUserId.slice(0, 2)).charAt(0).toUpperCase()}
+                  {(user.supervised?.displayName || user.supervisedUserId.slice(0, 2))
+                    .charAt(0)
+                    .toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-semibold text-foreground">
                     {user.supervised?.displayName || `用户 ${user.supervisedUserId.slice(0, 8)}`}
                   </span>
-                  <p className="text-xs text-muted-foreground mt-0.5">ID: {user.supervisedUserId.slice(0, 8)}...</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    ID: {user.supervisedUserId.slice(0, 8)}...
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <Link href={`/supervise-user-detail?user_id=${user.supervisedUserId}`} className="px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+                  <Link
+                    href={`/supervise-user-detail?user_id=${user.supervisedUserId}`}
+                    className="px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
+                  >
                     查看详情
                   </Link>
-                  <Button variant="ghost" size="icon" onClick={() => setShowRemoveConfirm(user.id)} className="text-muted-foreground hover:text-destructive">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowRemoveConfirm(user.id)}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
                     <UserX className="w-4 h-4" />
                   </Button>
                 </div>
@@ -204,7 +265,12 @@ export default function SupervisePage() {
         </div>
       )}
 
-      <Button variant="ghost" size="icon" onClick={() => setShowAddPanel(true)} className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-primary to-accent rounded-2xl shadow-float hover:shadow-glow transition-all duration-300 hover:scale-105 z-40">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setShowAddPanel(true)}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-primary to-accent rounded-2xl shadow-float hover:shadow-glow transition-all duration-300 hover:scale-105 z-40"
+      >
         <UserPlus className="w-6 h-6 text-white" />
       </Button>
 
@@ -214,7 +280,10 @@ export default function SupervisePage() {
           <div className="fixed bottom-0 left-0 right-0 lg:left-64 bg-surface/95 backdrop-blur-2xl border-t border-border/30 rounded-t-2xl p-6 z-50 shadow-float animate-slideUp">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground">添加监督用户</h3>
-              <button onClick={() => setShowAddPanel(false)} className="p-1 text-muted-foreground hover:text-foreground">
+              <button
+                onClick={() => setShowAddPanel(false)}
+                className="p-1 text-muted-foreground hover:text-foreground"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -223,7 +292,10 @@ export default function SupervisePage() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setSearchError(""); }}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setSearchError("");
+                }}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 placeholder="搜索用户邮箱或 ID..."
                 className="w-full pl-10 pr-20 py-3 bg-surface-container border-none rounded-lg text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -236,18 +308,21 @@ export default function SupervisePage() {
                 {searchLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "搜索"}
               </button>
             </div>
-            {searchError && (
-              <p className="text-sm text-red-400 mb-3">{searchError}</p>
-            )}
+            {searchError && <p className="text-sm text-red-400 mb-3">{searchError}</p>}
             {searchResults.length > 0 && (
               <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
                 {searchResults.map((user) => (
-                  <div key={user.userId} className="flex items-center gap-3 p-3 bg-surface/40 rounded-lg">
+                  <div
+                    key={user.userId}
+                    className="flex items-center gap-3 p-3 bg-surface/40 rounded-lg"
+                  >
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
                       {(user.displayName || "U").charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{user.displayName || "未命名"}</p>
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {user.displayName || "未命名"}
+                      </p>
                       <p className="text-xs text-muted-foreground truncate">{user.userId}</p>
                     </div>
                     <button
@@ -261,13 +336,18 @@ export default function SupervisePage() {
               </div>
             )}
             {searchResults.length === 0 && !searchError && (
-              <p className="text-sm text-muted-foreground text-center py-4">输入用户邮箱或 ID 后点击搜索</p>
+              <p className="text-sm text-muted-foreground text-center py-4">
+                输入用户邮箱或 ID 后点击搜索
+              </p>
             )}
           </div>
         </>
       )}
 
-      <AlertDialog open={!!showRemoveConfirm} onOpenChange={(open) => !open && setShowRemoveConfirm(null)}>
+      <AlertDialog
+        open={!!showRemoveConfirm}
+        onOpenChange={(open) => !open && setShowRemoveConfirm(null)}
+      >
         <AlertDialogContent className="backdrop-blur-2xl bg-white/5 border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-foreground">解除监督</AlertDialogTitle>
@@ -276,8 +356,15 @@ export default function SupervisePage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="backdrop-blur-md bg-white/5 border-white/10 text-muted-foreground">取消</AlertDialogCancel>
-            <AlertDialogAction onClick={() => showRemoveConfirm && handleRemove(showRemoveConfirm)} className="bg-destructive text-white">确认解除</AlertDialogAction>
+            <AlertDialogCancel className="backdrop-blur-md bg-white/5 border-white/10 text-muted-foreground">
+              取消
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => showRemoveConfirm && handleRemove(showRemoveConfirm)}
+              className="bg-destructive text-white"
+            >
+              确认解除
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

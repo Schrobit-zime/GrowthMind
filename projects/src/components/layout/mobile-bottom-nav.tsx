@@ -3,15 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
-import {
-  LayoutDashboard,
-  FileText,
-  PlusCircle,
-  Brain,
-  Target,
-  Users,
-  Server,
-} from "lucide-react";
+import { LayoutDashboard, FileText, PlusCircle, Brain, Target, Users, Server } from "lucide-react";
 
 interface NavItem {
   href: string;
@@ -38,9 +30,7 @@ export function MobileBottomNav() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === "admin";
 
-  const navItems = isAdmin
-    ? [...mobileNavItems, ...adminMobileNavItems]
-    : mobileNavItems;
+  const navItems = isAdmin ? [...mobileNavItems, ...adminMobileNavItems] : mobileNavItems;
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -71,9 +61,7 @@ export function MobileBottomNav() {
               ) : (
                 <item.icon className="w-5 h-5" />
               )}
-              <span className="text-[10px] font-medium leading-tight">
-                {item.label}
-              </span>
+              <span className="text-[10px] font-medium leading-tight">{item.label}</span>
               {active && !item.highlight && (
                 <div className="w-1 h-1 rounded-full bg-primary mt-0.5" />
               )}

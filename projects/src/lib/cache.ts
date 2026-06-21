@@ -13,7 +13,11 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
   }
 }
 
-export async function cacheSet(key: string, value: unknown, ttl: number = DEFAULT_TTL): Promise<void> {
+export async function cacheSet(
+  key: string,
+  value: unknown,
+  ttl: number = DEFAULT_TTL,
+): Promise<void> {
   const redis = getRedisClient();
   if (!redis) return;
   try {
@@ -29,13 +33,7 @@ export async function cacheDel(pattern: string): Promise<void> {
   try {
     let cursor = "0";
     do {
-      const [nextCursor, keys] = await redis.scan(
-        cursor,
-        "MATCH",
-        pattern,
-        "COUNT",
-        100
-      );
+      const [nextCursor, keys] = await redis.scan(cursor, "MATCH", pattern, "COUNT", 100);
       cursor = nextCursor;
       if (keys.length > 0) {
         await redis.del(...keys);
@@ -46,7 +44,11 @@ export async function cacheDel(pattern: string): Promise<void> {
   }
 }
 
-export function buildCacheKey(prefix: string, userId: string, params?: Record<string, string>): string {
+export function buildCacheKey(
+  prefix: string,
+  userId: string,
+  params?: Record<string, string>,
+): string {
   const paramStr = params
     ? ":" +
       Object.entries(params)

@@ -36,8 +36,8 @@ export async function GET(request: NextRequest) {
         and(
           eq(records.userId, auth.user.id),
           ...(dimension ? [eq(records.timeDimension, dimension)] : []),
-          ...(from && to ? [and(gte(records.recordDate, from), lte(records.recordDate, to))] : [])
-        )
+          ...(from && to ? [and(gte(records.recordDate, from), lte(records.recordDate, to))] : []),
+        ),
       )
       .orderBy(desc(records.createdAt))
       .limit(limit);

@@ -68,8 +68,10 @@ export default function LoginPage() {
         }
         router.replace("/");
       } else {
-        const { data, error: signInError } =
-          await supabase.auth.signInWithPassword({ email, password });
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
         if (signInError) {
           if (signInError.message.includes("Invalid login credentials")) {
             setError("邮箱或密码错误");
@@ -123,25 +125,18 @@ export default function LoginPage() {
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-float">
               <Brain className="w-7 h-7 text-white" />
             </div>
-            <span className="text-2xl font-bold text-foreground">
-              GrowthMind
-            </span>
+            <span className="text-2xl font-bold text-foreground">GrowthMind</span>
           </div>
           <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
             记录成长，遇见更好的自己
           </p>
           <div className="mt-8 space-y-3 hidden lg:block">
-            {["AI 智能分析与趋势解读", "多维度目标追踪管理", "可视化数据仪表盘"].map(
-              (item) => (
-                <div
-                  key={item}
-                  className="flex items-center gap-2 text-sm text-muted-foreground"
-                >
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-                  {item}
-                </div>
-              )
-            )}
+            {["AI 智能分析与趋势解读", "多维度目标追踪管理", "可视化数据仪表盘"].map((item) => (
+              <div key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                {item}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -182,9 +177,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">
-                邮箱
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">邮箱</label>
               <Input
                 type="email"
                 value={email}
@@ -196,9 +189,7 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">
-                密码
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">密码</label>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
@@ -214,11 +205,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
@@ -226,9 +213,7 @@ export default function LoginPage() {
             {/* Confirm Password (register only) */}
             {mode === "register" && (
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  确认密码
-                </label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">确认密码</label>
                 <div className="relative">
                   <Input
                     type={showConfirm ? "text" : "password"}
@@ -244,11 +229,7 @@ export default function LoginPage() {
                     onClick={() => setShowConfirm(!showConfirm)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showConfirm ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
+                    {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
                 </div>
               </div>
@@ -267,11 +248,7 @@ export default function LoginPage() {
               disabled={submitting}
               className="w-full py-3 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-lg shadow-float hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed h-12"
             >
-              {submitting
-                ? "处理中..."
-                : mode === "login"
-                  ? "登录"
-                  : "注册"}
+              {submitting ? "处理中..." : mode === "login" ? "登录" : "注册"}
             </Button>
           </form>
 

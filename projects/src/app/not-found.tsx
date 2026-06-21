@@ -14,12 +14,8 @@ export default function NotFound() {
           <span className="text-5xl font-bold text-primary">404</span>
         </div>
 
-        <h2 className="text-xl font-bold text-foreground mb-2">
-          页面不存在
-        </h2>
-        <p className="text-sm text-muted-foreground mb-8">
-          你访问的页面不存在或已被移除。
-        </p>
+        <h2 className="text-xl font-bold text-foreground mb-2">页面不存在</h2>
+        <p className="text-sm text-muted-foreground mb-8">你访问的页面不存在或已被移除。</p>
 
         <div className="flex items-center justify-center gap-3">
           <button

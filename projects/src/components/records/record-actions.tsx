@@ -68,12 +68,8 @@ export function RecordActions({ recordId }: RecordActionsProps) {
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent className="backdrop-blur-2xl bg-white/5 border-white/10">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-foreground">
-              确认删除
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              确定要删除这条记录吗？此操作不可撤销。
-            </AlertDialogDescription>
+            <AlertDialogTitle className="text-foreground">确认删除</AlertDialogTitle>
+            <AlertDialogDescription>确定要删除这条记录吗？此操作不可撤销。</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="backdrop-blur-md bg-white/5 border-white/10 text-muted-foreground">

@@ -19,6 +19,11 @@ const exportQuerySchema = z.object({
   to: z.string().optional(),
 });
 
+/** 记录行类型 */
+type RecordRow = typeof records.$inferSelect;
+/** 目标行类型 */
+type GoalRow = typeof goals.$inferSelect;
+
 export async function GET(request: NextRequest) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
@@ -35,13 +40,13 @@ export async function GET(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { success: false, error: parsed.error.issues[0]?.message || "参数无效" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const { type, format, from, to } = parsed.data;
 
-    let data: any[];
+    let data: RecordRow[] | GoalRow[];
 
     if (type === "records") {
       const conditions = [eq(records.userId, auth.user.id)];
@@ -64,10 +69,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!data.length) {
-      return NextResponse.json(
-        { success: false, error: "没有可导出的数据" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: "没有可导出的数据" }, { status: 404 });
     }
 
     const dateStr = new Date().toISOString().split("T")[0];
@@ -99,11 +101,7 @@ export async function GET(request: NextRequest) {
     if (format === "pdf") {
       const doc = new jsPDF();
       doc.setFontSize(16);
-      doc.text(
-        `${type === "records" ? "成长记录" : "目标"} 导出`,
-        14,
-        20
-      );
+      doc.text(`${type === "records" ? "成长记录" : "目标"} 导出`, 14, 20);
       doc.setFontSize(10);
 
       let y = 30;
@@ -133,10 +131,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json(
-      { success: false, error: "不支持的格式" },
-      { status: 400 }
-    );
+    return NextResponse.json({ success: false, error: "不支持的格式" }, { status: 400 });
   } catch (error) {
     return handleApiError(error, "导出数据");
   }

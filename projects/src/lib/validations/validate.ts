@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
  */
 export async function validateBody<T>(
   request: Request,
-  schema: ZodSchema<T>
+  schema: ZodSchema<T>,
 ): Promise<T | NextResponse> {
   try {
     const body = await request.json();
@@ -19,14 +19,14 @@ export async function validateBody<T>(
           error: "输入数据验证失败",
           details: formatZodErrors(result.error),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
     return result.data;
   } catch {
     return NextResponse.json(
       { success: false, error: "请求体格式无效，请提供有效的 JSON" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

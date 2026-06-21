@@ -77,12 +77,8 @@ export function GoalActions({
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent className="backdrop-blur-2xl bg-white/5 border-white/10">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-foreground">
-              确认删除
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              确定要删除目标「{goalName}」吗？
-            </AlertDialogDescription>
+            <AlertDialogTitle className="text-foreground">确认删除</AlertDialogTitle>
+            <AlertDialogDescription>确定要删除目标「{goalName}」吗？</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
             <p className="text-xs text-destructive">

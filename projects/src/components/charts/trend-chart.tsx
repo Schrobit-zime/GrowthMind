@@ -54,11 +54,10 @@ const TrendChart = React.memo(function TrendChart({
   xAxisKey,
   colors,
 }: TrendChartProps) {
-  const defaultColors = useMemo(() => [
-    CHART_COLORS.primary,
-    CHART_COLORS.accent,
-    CHART_COLORS.rose,
-  ], []);
+  const defaultColors = useMemo(
+    () => [CHART_COLORS.primary, CHART_COLORS.accent, CHART_COLORS.rose],
+    [],
+  );
   const lineColors = useMemo(() => colors || defaultColors, [colors, defaultColors]);
 
   if (!data || data.length === 0) {
@@ -74,32 +73,13 @@ const TrendChart = React.memo(function TrendChart({
       <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
         <defs>
           {dataKeys.map((key, i) => (
-            <linearGradient
-              key={key}
-              id={`trendGrad-${key}`}
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
-              <stop
-                offset="0%"
-                stopColor={lineColors[i % lineColors.length]}
-                stopOpacity="0.3"
-              />
-              <stop
-                offset="100%"
-                stopColor={lineColors[i % lineColors.length]}
-                stopOpacity="0"
-              />
+            <linearGradient key={key} id={`trendGrad-${key}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={lineColors[i % lineColors.length]} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={lineColors[i % lineColors.length]} stopOpacity="0" />
             </linearGradient>
           ))}
         </defs>
-        <CartesianGrid
-          strokeDasharray="4 4"
-          stroke="rgba(255,255,255,0.06)"
-          vertical={false}
-        />
+        <CartesianGrid strokeDasharray="4 4" stroke="rgba(255,255,255,0.06)" vertical={false} />
         <XAxis
           dataKey={xAxisKey}
           tick={{ fill: "rgba(154, 167, 199, 0.6)", fontSize: 10 }}

@@ -16,20 +16,12 @@ describe("StatCard 组件", () => {
   });
 
   it("应该渲染趋势图标", () => {
-    render(
-      <StatCard title="增长率" value="20" trend="up" trendValue="+20%相对于上周" />
-    );
+    render(<StatCard title="增长率" value="20" trend="up" trendValue="+20%相对于上周" />);
     expect(screen.getByText("+20%相对于上周")).toBeInTheDocument();
   });
 
   it("应该渲染图标", () => {
-    render(
-      <StatCard
-        title="活跃度"
-        value={85}
-        icon={<Activity data-testid="activity-icon" />}
-      />
-    );
+    render(<StatCard title="活跃度" value={85} icon={<Activity data-testid="activity-icon" />} />);
     expect(screen.getByTestId("activity-icon")).toBeInTheDocument();
   });
 

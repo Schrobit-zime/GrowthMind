@@ -4,14 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useFetch } from "@/hooks/use-api";
-import {
-  BookOpen,
-  Briefcase,
-  Activity,
-  Smile,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { BookOpen, Briefcase, Activity, Smile, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useMemo } from "react";
 import { StatCard } from "@/components/cards/stat-card";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -86,26 +79,14 @@ export default function HomePage() {
   const todaySummary = useMemo(() => {
     if (!records || records.length === 0) return null;
     const today = new Date().toISOString().slice(0, 10);
-    const todayRecords = records.filter(
-      (r) => r.recordDate && r.recordDate.slice(0, 10) === today
-    );
+    const todayRecords = records.filter((r) => r.recordDate && r.recordDate.slice(0, 10) === today);
 
-    const learningCount = todayRecords.filter((r) =>
-      hasDimensionData(r.learning)
-    ).length;
-    const workCount = todayRecords.filter((r) =>
-      hasDimensionData(r.work)
-    ).length;
-    const healthCount = todayRecords.filter((r) =>
-      hasDimensionData(r.health)
-    ).length;
-    const moodScores = todayRecords
-      .map((r) => r.moodScore)
-      .filter((s): s is number => s != null);
+    const learningCount = todayRecords.filter((r) => hasDimensionData(r.learning)).length;
+    const workCount = todayRecords.filter((r) => hasDimensionData(r.work)).length;
+    const healthCount = todayRecords.filter((r) => hasDimensionData(r.health)).length;
+    const moodScores = todayRecords.map((r) => r.moodScore).filter((s): s is number => s != null);
     const avgMood =
-      moodScores.length > 0
-        ? moodScores.reduce((a, b) => a + b, 0) / moodScores.length
-        : null;
+      moodScores.length > 0 ? moodScores.reduce((a, b) => a + b, 0) / moodScores.length : null;
 
     return {
       learningCount,
@@ -164,11 +145,7 @@ export default function HomePage() {
     if (!records || records.length === 0) return [];
     const sorted = [...records]
       .filter((r): r is RecordItem & { moodScore: number } => r.moodScore != null)
-      .sort(
-        (a, b) =>
-          new Date(a.recordDate).getTime() -
-          new Date(b.recordDate).getTime()
-      )
+      .sort((a, b) => new Date(a.recordDate).getTime() - new Date(b.recordDate).getTime())
       .slice(-14);
     if (sorted.length === 0) return [];
     const maxScore = 10;
@@ -192,9 +169,7 @@ export default function HomePage() {
         id: g.id,
         name: g.name,
         progress:
-          g.targetValue > 0
-            ? Math.min(Math.round((g.currentValue / g.targetValue) * 100), 100)
-            : 0,
+          g.targetValue > 0 ? Math.min(Math.round((g.currentValue / g.targetValue) * 100), 100) : 0,
         current: g.currentValue,
         target: g.targetValue,
         unit: g.metric || "",
@@ -210,7 +185,7 @@ export default function HomePage() {
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().slice(0, 10);
       const count = records.filter(
-        (r) => r.recordDate && r.recordDate.slice(0, 10) === dateStr
+        (r) => r.recordDate && r.recordDate.slice(0, 10) === dateStr,
       ).length;
       days.push({ date: dateStr, count });
     }
@@ -221,20 +196,16 @@ export default function HomePage() {
   const radarScores = useMemo(() => {
     if (!records || records.length === 0) return [0, 0, 0, 0, 0];
     const total = records.length;
-    const learningPct =
-      records.filter((r) => hasDimensionData(r.learning)).length / total;
-    const workPct =
-      records.filter((r) => hasDimensionData(r.work)).length / total;
-    const lifePct =
-      records.filter((r) => hasDimensionData(r.life)).length / total;
-    const healthPct =
-      records.filter((r) => hasDimensionData(r.health)).length / total;
-    const moodScores = records.filter((r): r is RecordItem & { moodScore: number } => r.moodScore != null);
+    const learningPct = records.filter((r) => hasDimensionData(r.learning)).length / total;
+    const workPct = records.filter((r) => hasDimensionData(r.work)).length / total;
+    const lifePct = records.filter((r) => hasDimensionData(r.life)).length / total;
+    const healthPct = records.filter((r) => hasDimensionData(r.health)).length / total;
+    const moodScores = records.filter(
+      (r): r is RecordItem & { moodScore: number } => r.moodScore != null,
+    );
     const moodPct =
       moodScores.length > 0
-        ? moodScores.reduce((a, r) => a + r.moodScore, 0) /
-          moodScores.length /
-          10
+        ? moodScores.reduce((a, r) => a + r.moodScore, 0) / moodScores.length / 10
         : 0;
     return [learningPct, workPct, lifePct, healthPct, moodPct];
   }, [records]);
@@ -273,9 +244,7 @@ export default function HomePage() {
     <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">
-          下午好，{displayName} 👋
-        </h1>
+        <h1 className="text-2xl font-bold text-foreground">下午好，{displayName} 👋</h1>
         <p className="text-sm text-muted-foreground mt-1">
           {new Date().toLocaleDateString("zh-CN", {
             year: "numeric",
@@ -320,9 +289,7 @@ export default function HomePage() {
       {hasAnyData && moodTrendPoints.length > 0 && (
         <div className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">
-              心情趋势
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground">心情趋势</h2>
             <div className="flex gap-1 bg-surface-container rounded-lg p-1">
               {["周", "月"].map((tab) => (
                 <button
@@ -339,11 +306,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="h-48">
-            <TrendChart
-              data={moodTrendPoints}
-              dataKeys={["score"]}
-              xAxisKey="label"
-            />
+            <TrendChart data={moodTrendPoints} dataKeys={["score"]} xAxisKey="label" />
           </div>
         </div>
       )}
@@ -373,25 +336,16 @@ export default function HomePage() {
         <div className="space-y-6">
           {/* Radar chart */}
           <div className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              五维综合评估
-            </h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">五维综合评估</h2>
             <div className="h-56">
-              <RadarChartComponent
-                data={radarData}
-                maxValue={100}
-              />
+              <RadarChartComponent data={radarData} maxValue={100} />
             </div>
           </div>
 
           {/* Heatmap */}
           <div className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              本月活跃度
-            </h2>
-            <Heatmap
-              data={heatmapData.map((d) => ({ date: d.date, value: d.count }))}
-            />
+            <h2 className="text-lg font-semibold text-foreground mb-4">本月活跃度</h2>
+            <Heatmap data={heatmapData.map((d) => ({ date: d.date, value: d.count }))} />
           </div>
         </div>
       )}
@@ -407,9 +361,7 @@ export default function HomePage() {
               className="block bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-4 hover:bg-surface/60 hover:border-primary/30 transition-all duration-300"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-foreground">
-                  {goal.name}
-                </span>
+                <span className="text-sm font-medium text-foreground">{goal.name}</span>
                 <span className="text-xs text-muted-foreground">
                   {goal.current}/{goal.target} {goal.unit}
                 </span>

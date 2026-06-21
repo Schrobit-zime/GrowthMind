@@ -53,8 +53,6 @@ function UserDetailContent() {
 
   // 用户数据
   const [userData, setUserData] = useState<SupervisedUserData | null>(null);
-  const [userLoading, setUserLoading] = useState(true);
-  const [userError, setUserError] = useState<string | null>(null);
 
   // 记录数据
   const [records, setRecords] = useState<RecordItem[]>([]);
@@ -86,9 +84,8 @@ function UserDetailContent() {
       }
     } catch (err) {
       console.error("Failed to fetch user data:", err);
-      setUserError("获取用户数据失败");
     } finally {
-      setUserLoading(false);
+      // 用户数据加载完成
     }
   }, [session?.access_token, userId]);
 
@@ -146,7 +143,10 @@ function UserDetailContent() {
     return (
       <div className="min-h-screen bg-background">
         <header className="h-16 flex items-center gap-4 px-4 lg:px-6 bg-surface/40 backdrop-blur-xl border-b border-border/20">
-          <Link href="/supervise" className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+          <Link
+            href="/supervise"
+            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <span className="text-lg font-semibold text-foreground">用户详情</span>
@@ -159,28 +159,62 @@ function UserDetailContent() {
   }
 
   const displayName = userData?.supervised?.displayName || `用户 ${userId.slice(0, 8)}`;
-  const avatarChar = (userData?.supervised?.displayName || userId.slice(0, 2)).charAt(0).toUpperCase();
+  const avatarChar = (userData?.supervised?.displayName || userId.slice(0, 2))
+    .charAt(0)
+    .toUpperCase();
 
   // 计算概览统计
-  const todayRecords = records.filter((r) => r.recordDate?.slice(0, 10) === new Date().toISOString().slice(0, 10));
-  const learningCount = todayRecords.filter((r) => r.learning && Object.keys(r.learning).length > 0).length;
+  const todayRecords = records.filter(
+    (r) => r.recordDate?.slice(0, 10) === new Date().toISOString().slice(0, 10),
+  );
+  const learningCount = todayRecords.filter(
+    (r) => r.learning && Object.keys(r.learning).length > 0,
+  ).length;
   const workCount = todayRecords.filter((r) => r.work && Object.keys(r.work).length > 0).length;
   const moodScores = todayRecords.map((r) => r.moodScore).filter((s): s is number => s != null);
-  const avgMood = moodScores.length > 0 ? moodScores.reduce((a, b) => a + b, 0) / moodScores.length : 0;
-  const healthCount = todayRecords.filter((r) => r.health && Object.keys(r.health).length > 0).length;
+  const avgMood =
+    moodScores.length > 0 ? moodScores.reduce((a, b) => a + b, 0) / moodScores.length : 0;
+  const healthCount = todayRecords.filter(
+    (r) => r.health && Object.keys(r.health).length > 0,
+  ).length;
 
   const todayCards = [
-    { label: "学习", value: `${learningCount}项`, icon: BookOpen, color: "text-blue-400", bg: "bg-blue-400/10" },
-    { label: "工作", value: `${workCount}项`, icon: Briefcase, color: "text-emerald-400", bg: "bg-emerald-400/10" },
-    { label: "心情", value: avgMood > 0 ? avgMood.toFixed(1) : "—", icon: Smile, color: "text-pink-400", bg: "bg-pink-400/10" },
-    { label: "身体", value: `${healthCount}项`, icon: Activity, color: "text-amber-400", bg: "bg-amber-400/10" },
+    {
+      label: "学习",
+      value: `${learningCount}项`,
+      icon: BookOpen,
+      color: "text-blue-400",
+      bg: "bg-blue-400/10",
+    },
+    {
+      label: "工作",
+      value: `${workCount}项`,
+      icon: Briefcase,
+      color: "text-emerald-400",
+      bg: "bg-emerald-400/10",
+    },
+    {
+      label: "心情",
+      value: avgMood > 0 ? avgMood.toFixed(1) : "—",
+      icon: Smile,
+      color: "text-pink-400",
+      bg: "bg-pink-400/10",
+    },
+    {
+      label: "身体",
+      value: `${healthCount}项`,
+      icon: Activity,
+      color: "text-amber-400",
+      bg: "bg-amber-400/10",
+    },
   ];
 
   const goalItems = goals
     .filter((g) => g.status === "active")
     .map((g) => ({
       name: g.name,
-      progress: g.targetValue > 0 ? Math.min(Math.round((g.currentValue / g.targetValue) * 100), 100) : 0,
+      progress:
+        g.targetValue > 0 ? Math.min(Math.round((g.currentValue / g.targetValue) * 100), 100) : 0,
       current: g.currentValue,
       target: g.targetValue,
       unit: g.metric || "",
@@ -196,7 +230,10 @@ function UserDetailContent() {
     <div className="min-h-screen bg-background">
       {/* 顶部栏 */}
       <header className="h-16 flex items-center gap-4 px-4 lg:px-6 bg-surface/40 backdrop-blur-xl border-b border-border/20">
-        <Link href="/supervise" className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+        <Link
+          href="/supervise"
+          className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary">
@@ -249,7 +286,9 @@ function UserDetailContent() {
                   <CardContent className="py-4">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs text-muted-foreground">{card.label}</span>
-                      <div className={`w-8 h-8 rounded-lg ${card.bg} flex items-center justify-center`}>
+                      <div
+                        className={`w-8 h-8 rounded-lg ${card.bg} flex items-center justify-center`}
+                      >
                         <card.icon className={`w-4 h-4 ${card.color}`} />
                       </div>
                     </div>
@@ -274,13 +313,41 @@ function UserDetailContent() {
                       </linearGradient>
                     </defs>
                     {[0, 1, 2, 3].map((i) => (
-                      <line key={i} x1="30" y1={20 + i * 35} x2="490" y2={20 + i * 35} stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
+                      <line
+                        key={i}
+                        x1="30"
+                        y1={20 + i * 35}
+                        x2="490"
+                        y2={20 + i * 35}
+                        stroke="rgba(255,255,255,0.06)"
+                        strokeDasharray="4 4"
+                      />
                     ))}
-                    <path d={`M30,${120 - (moodTrend[0].moodScore || 5) * 10} ${moodTrend.map((d, i) => `L${30 + i * (460 / Math.max(moodTrend.length - 1, 1))},${120 - (d.moodScore || 5) * 10}`).join(" ")} L490,140 L30,140 Z`} fill="url(#trendGrad3)" />
-                    <path d={`M30,${120 - (moodTrend[0].moodScore || 5) * 10} ${moodTrend.map((d, i) => `L${30 + i * (460 / Math.max(moodTrend.length - 1, 1))},${120 - (d.moodScore || 5) * 10}`).join(" ")}`} fill="none" stroke="rgb(124, 92, 255)" strokeWidth="2" strokeLinecap="round" />
-                    {moodTrend.filter((_, i) => i % 2 === 0).map((d, i) => (
-                      <text key={i} x={30 + i * 2 * (460 / Math.max(moodTrend.length - 1, 1))} y="135" textAnchor="middle" fill="rgba(154,167,199,0.6)" fontSize="9">{d.recordDate?.slice(5)}</text>
-                    ))}
+                    <path
+                      d={`M30,${120 - (moodTrend[0].moodScore || 5) * 10} ${moodTrend.map((d, i) => `L${30 + i * (460 / Math.max(moodTrend.length - 1, 1))},${120 - (d.moodScore || 5) * 10}`).join(" ")} L490,140 L30,140 Z`}
+                      fill="url(#trendGrad3)"
+                    />
+                    <path
+                      d={`M30,${120 - (moodTrend[0].moodScore || 5) * 10} ${moodTrend.map((d, i) => `L${30 + i * (460 / Math.max(moodTrend.length - 1, 1))},${120 - (d.moodScore || 5) * 10}`).join(" ")}`}
+                      fill="none"
+                      stroke="rgb(124, 92, 255)"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    {moodTrend
+                      .filter((_, i) => i % 2 === 0)
+                      .map((d, i) => (
+                        <text
+                          key={i}
+                          x={30 + i * 2 * (460 / Math.max(moodTrend.length - 1, 1))}
+                          y="135"
+                          textAnchor="middle"
+                          fill="rgba(154,167,199,0.6)"
+                          fontSize="9"
+                        >
+                          {d.recordDate?.slice(5)}
+                        </text>
+                      ))}
                   </svg>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-8">暂无心情数据</p>
@@ -308,10 +375,15 @@ function UserDetailContent() {
                       <CardContent className="py-4">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-medium text-foreground">{g.name}</span>
-                          <span className="text-xs text-muted-foreground">{g.current}/{g.target} {g.unit}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {g.current}/{g.target} {g.unit}
+                          </span>
                         </div>
                         <div className="h-2 bg-surface-container rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-primary to-accent rounded-full" style={{ width: `${g.progress}%` }} />
+                          <div
+                            className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
+                            style={{ width: `${g.progress}%` }}
+                          />
                         </div>
                       </CardContent>
                     </Card>
@@ -344,7 +416,9 @@ function UserDetailContent() {
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className="px-2 py-0.5 text-xs rounded-md bg-primary/10 text-primary">{rec.timeDimension}</span>
+                            <span className="px-2 py-0.5 text-xs rounded-md bg-primary/10 text-primary">
+                              {rec.timeDimension}
+                            </span>
                             <span className="text-xs text-muted-foreground">{rec.recordDate}</span>
                           </div>
                           <p className="text-sm text-foreground">{rec.summary || "无摘要"}</p>
@@ -399,8 +473,19 @@ function UserDetailContent() {
                 />
               </div>
               <div className="flex gap-3">
-                <Button variant="ghost" onClick={() => setShowSendAlert(false)} className="flex-1 py-3 text-sm font-medium text-muted-foreground bg-surface-container rounded-xl h-12">取消</Button>
-                <Button onClick={() => setShowSendAlert(false)} className="flex-1 py-3 text-sm font-semibold text-white bg-gradient-to-r from-primary to-accent rounded-xl shadow-float h-12">发送</Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowSendAlert(false)}
+                  className="flex-1 py-3 text-sm font-medium text-muted-foreground bg-surface-container rounded-xl h-12"
+                >
+                  取消
+                </Button>
+                <Button
+                  onClick={() => setShowSendAlert(false)}
+                  className="flex-1 py-3 text-sm font-semibold text-white bg-gradient-to-r from-primary to-accent rounded-xl shadow-float h-12"
+                >
+                  发送
+                </Button>
               </div>
             </div>
           </div>
@@ -412,7 +497,13 @@ function UserDetailContent() {
 
 export default function SuperviseUserDetailPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
       <UserDetailContent />
     </Suspense>
   );

@@ -14,7 +14,7 @@ interface FetchState<T> {
  */
 export function useFetch<T = unknown>(
   url: string,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ): FetchState<T> & { refetch: () => void } {
   const { session } = useAuth();
   const enabled = options?.enabled ?? true;
@@ -37,18 +37,18 @@ export function useFetch<T = unknown>(
         signal: ctrl.signal,
       });
       const json = await res.json();
-      if (!res.ok || !json.success)
-        throw new Error(json.error || "请求失败");
+      if (!res.ok || !json.success) throw new Error(json.error || "请求失败");
       setState({ data: json.data as T, loading: false, error: null });
-    } catch (err: any) {
-      if (err.name === "AbortError") return;
+    } catch (err: unknown) {
+      const e = err as { name?: string; message?: string };
+      if (e.name === "AbortError") return;
       setState({
         data: null,
         loading: false,
-        error: err.message || "网络请求失败",
+        error: e.message || "网络请求失败",
       });
     }
-  }, [url, session?.access_token, enabled]);
+  }, [url, session, enabled]);
 
   useEffect(() => {
     fetchData();
@@ -64,18 +64,15 @@ export function useFetch<T = unknown>(
  */
 export function useMutation<T = unknown, V = unknown>(
   url: string,
-  method: "POST" | "PUT" | "DELETE" = "POST"
+  method: "POST" | "PUT" | "DELETE" = "POST",
 ) {
   const { session } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const mutate = useCallback(
-    async (
-      body?: V
-    ): Promise<{ success: boolean; data?: T; error?: string }> => {
-      if (!session?.access_token)
-        return { success: false, error: "未登录" };
+    async (body?: V): Promise<{ success: boolean; data?: T; error?: string }> => {
+      if (!session?.access_token) return { success: false, error: "未登录" };
       setLoading(true);
       setError(null);
       try {
@@ -91,13 +88,14 @@ export function useMutation<T = unknown, V = unknown>(
         setLoading(false);
         setError(json.success ? null : json.error);
         return json;
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const e = err as { name?: string; message?: string };
         setLoading(false);
-        setError(err.message);
-        return { success: false, error: err.message };
+        setError(e.message || "请求失败");
+        return { success: false, error: e.message || "请求失败" };
       }
     },
-    [url, method, session?.access_token]
+    [url, method, session],
   );
 
   return { mutate, loading, error };

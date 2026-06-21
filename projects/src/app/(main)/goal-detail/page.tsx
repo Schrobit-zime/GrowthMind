@@ -18,13 +18,20 @@ const timeDimensionLabels: Record<string, string> = {
   custom: "自定义",
 };
 
+/** 计算剩余天数 */
+function calcDaysRemaining(deadline: string | null): number | null {
+  if (!deadline) return null;
+  return Math.max(
+    0,
+    Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+  );
+}
+
 interface Props {
   searchParams: Promise<{ goal_id?: string }>;
 }
 
-export async function generateMetadata({
-  searchParams,
-}: Props): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { goal_id } = await searchParams;
   if (!goal_id) return { title: "目标详情 - GrowthMind" };
 
@@ -52,10 +59,7 @@ export default async function GoalDetailPage({ searchParams }: Props) {
         <div className="flex items-center justify-center min-h-[40vh]">
           <div className="text-center">
             <p className="text-sm text-muted-foreground">未指定目标 ID</p>
-            <Link
-              href="/goals"
-              className="inline-block mt-3 text-sm text-primary hover:underline"
-            >
+            <Link href="/goals" className="inline-block mt-3 text-sm text-primary hover:underline">
               返回目标列表
             </Link>
           </div>
@@ -75,28 +79,14 @@ export default async function GoalDetailPage({ searchParams }: Props) {
 
   const progress =
     goal.targetValue > 0
-      ? Math.min(
-          Math.round((goal.currentValue / goal.targetValue) * 100),
-          100
-        )
+      ? Math.min(Math.round((goal.currentValue / goal.targetValue) * 100), 100)
       : 0;
 
-  const remainingDays = goal.deadline
-    ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(goal.deadline).getTime() - Date.now()) /
-            (1000 * 60 * 60 * 24)
-        )
-      )
-    : null;
+  const remainingDays = calcDaysRemaining(goal.deadline);
 
   const trendData = relatedRecords
     .filter((r) => r.recordDate)
-    .sort(
-      (a, b) =>
-        new Date(a.recordDate).getTime() - new Date(b.recordDate).getTime()
-    )
+    .sort((a, b) => new Date(a.recordDate).getTime() - new Date(b.recordDate).getTime())
     .slice(-15);
 
   const radius = 70;
@@ -142,13 +132,7 @@ export default async function GoalDetailPage({ searchParams }: Props) {
                   className="transition-all duration-1000"
                 />
                 <defs>
-                  <linearGradient
-                    id="progressGrad"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="0%"
-                  >
+                  <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" stopColor="rgb(124, 92, 255)" />
                     <stop offset="100%" stopColor="rgb(105, 231, 255)" />
                   </linearGradient>
@@ -177,9 +161,7 @@ export default async function GoalDetailPage({ searchParams }: Props) {
 
             <div className="flex-1 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
-                <h2 className="text-xl font-bold text-foreground">
-                  {goal.name}
-                </h2>
+                <h2 className="text-xl font-bold text-foreground">{goal.name}</h2>
                 <span className="px-2 py-0.5 text-xs rounded-md bg-primary/10 text-primary">
                   {goal.dimension}
                 </span>
@@ -223,16 +205,8 @@ export default async function GoalDetailPage({ searchParams }: Props) {
             <svg viewBox="0 0 500 140" className="w-full h-full">
               <defs>
                 <linearGradient id="trendGrad2" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="0%"
-                    stopColor="rgb(124, 92, 255)"
-                    stopOpacity="0.25"
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor="rgb(124, 92, 255)"
-                    stopOpacity="0"
-                  />
+                  <stop offset="0%" stopColor="rgb(124, 92, 255)" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="rgb(124, 92, 255)" stopOpacity="0" />
                 </linearGradient>
               </defs>
               {[0, 1, 2, 3].map((i) => (
@@ -250,7 +224,7 @@ export default async function GoalDetailPage({ searchParams }: Props) {
                 d={`M30,${120 - (trendData[0].moodScore || 5) * 10} ${trendData
                   .map(
                     (d, i) =>
-                      `L${30 + i * (460 / Math.max(trendData.length - 1, 1))},${120 - (d.moodScore || 5) * 10}`
+                      `L${30 + i * (460 / Math.max(trendData.length - 1, 1))},${120 - (d.moodScore || 5) * 10}`,
                   )
                   .join(" ")} L490,140 L30,140 Z`}
                 fill="url(#trendGrad2)"
@@ -259,7 +233,7 @@ export default async function GoalDetailPage({ searchParams }: Props) {
                 d={`M30,${120 - (trendData[0].moodScore || 5) * 10} ${trendData
                   .map(
                     (d, i) =>
-                      `L${30 + i * (460 / Math.max(trendData.length - 1, 1))},${120 - (d.moodScore || 5) * 10}`
+                      `L${30 + i * (460 / Math.max(trendData.length - 1, 1))},${120 - (d.moodScore || 5) * 10}`,
                   )
                   .join(" ")}`}
                 fill="none"
@@ -272,9 +246,7 @@ export default async function GoalDetailPage({ searchParams }: Props) {
                 .map((d, i) => (
                   <text
                     key={i}
-                    x={
-                      30 + i * 3 * (460 / Math.max(trendData.length - 1, 1))
-                    }
+                    x={30 + i * 3 * (460 / Math.max(trendData.length - 1, 1))}
                     y="135"
                     textAnchor="middle"
                     fill="rgba(154,167,199,0.6)"
@@ -289,9 +261,7 @@ export default async function GoalDetailPage({ searchParams }: Props) {
       )}
 
       <div>
-        <h3 className="text-sm font-semibold text-foreground mb-3">
-          关联记录
-        </h3>
+        <h3 className="text-sm font-semibold text-foreground mb-3">关联记录</h3>
         {relatedRecords.length === 0 ? (
           <Card className="backdrop-blur-md bg-white/5 border-white/10 text-center">
             <CardContent className="py-8">
@@ -310,22 +280,15 @@ export default async function GoalDetailPage({ searchParams }: Props) {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="px-2 py-0.5 text-xs rounded-md bg-primary/10 text-primary">
-                        {timeDimensionLabels[rec.timeDimension] ||
-                          rec.timeDimension}
+                        {timeDimensionLabels[rec.timeDimension] || rec.timeDimension}
                       </span>
-                      <span className="text-xs text-muted-foreground">
-                        {rec.recordDate}
-                      </span>
+                      <span className="text-xs text-muted-foreground">{rec.recordDate}</span>
                     </div>
-                    <p className="text-sm text-foreground">
-                      {rec.summary || "无摘要"}
-                    </p>
+                    <p className="text-sm text-foreground">{rec.summary || "无摘要"}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     {rec.moodScore != null && (
-                      <p className="text-sm font-bold text-foreground">
-                        心情 {rec.moodScore}
-                      </p>
+                      <p className="text-sm font-bold text-foreground">心情 {rec.moodScore}</p>
                     )}
                     <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors ml-auto mt-1" />
                   </div>

@@ -53,10 +53,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Close avatar menu on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (
-        avatarMenuRef.current &&
-        !avatarMenuRef.current.contains(e.target as Node)
-      ) {
+      if (avatarMenuRef.current && !avatarMenuRef.current.contains(e.target as Node)) {
         setAvatarMenuOpen(false);
       }
     }
@@ -175,11 +172,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="lg:hidden min-h-11 min-w-11 p-2 text-muted-foreground hover:text-foreground transition-colors inline-flex items-center justify-center"
           >
-            {sidebarOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
           <div className="flex-1" />
@@ -200,9 +193,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               className="flex items-center gap-2 p-1.5 min-h-11 rounded-lg hover:bg-surface-container transition-colors"
             >
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary">
-                {profile?.displayName?.charAt(0) ||
-                  user?.email?.charAt(0) ||
-                  "?"}
+                {profile?.displayName?.charAt(0) || user?.email?.charAt(0) || "?"}
               </div>
               <ChevronDown
                 className={`w-4 h-4 text-muted-foreground transition-transform ${
@@ -217,9 +208,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <p className="text-sm font-medium text-foreground truncate">
                     {profile?.displayName || "用户"}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user?.email}
-                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 </div>
                 <button
                   onClick={() => {
@@ -249,9 +238,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         createPortal(
           <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
             <div className="bg-surface/95 backdrop-blur-2xl border border-border/30 rounded-2xl p-6 w-full max-w-sm shadow-float">
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                确认退出
-              </h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">确认退出</h3>
               <p className="text-sm text-muted-foreground mb-6">
                 退出登录后需要重新登录才能访问应用
               </p>
@@ -274,7 +261,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );

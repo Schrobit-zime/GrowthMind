@@ -36,14 +36,25 @@ export const goalsRelations = relations(goals, ({ one, many }) => ({
 
 // supervisionRelations 双向关联
 export const supervisionRelationsRelations = relations(supervisionRelations, ({ one }) => ({
-  supervisor: one(profiles, { fields: [supervisionRelations.adminUserId], references: [profiles.userId], relationName: "supervisor" }),
-  supervised: one(profiles, { fields: [supervisionRelations.supervisedUserId], references: [profiles.userId], relationName: "supervised" }),
+  supervisor: one(profiles, {
+    fields: [supervisionRelations.adminUserId],
+    references: [profiles.userId],
+    relationName: "supervisor",
+  }),
+  supervised: one(profiles, {
+    fields: [supervisionRelations.supervisedUserId],
+    references: [profiles.userId],
+    relationName: "supervised",
+  }),
 }));
 
 // reminderRules 关联
 export const reminderRulesRelations = relations(reminderRules, ({ one }) => ({
   admin: one(profiles, { fields: [reminderRules.adminUserId], references: [profiles.userId] }),
-  supervisedUser: one(profiles, { fields: [reminderRules.supervisedUserId], references: [profiles.userId] }),
+  supervisedUser: one(profiles, {
+    fields: [reminderRules.supervisedUserId],
+    references: [profiles.userId],
+  }),
 }));
 
 // analysisHistory 关联

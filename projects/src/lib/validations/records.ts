@@ -1,8 +1,15 @@
 import { z } from "zod";
 
 const TimeDimensionEnum = z.enum([
-  "daily", "weekly", "monthly", "semiannual", "annual",
-  "morning", "noon", "evening", "custom"
+  "daily",
+  "weekly",
+  "monthly",
+  "semiannual",
+  "annual",
+  "morning",
+  "noon",
+  "evening",
+  "custom",
 ]);
 
 const DimensionSchema = z.record(z.string(), z.unknown()).default({});

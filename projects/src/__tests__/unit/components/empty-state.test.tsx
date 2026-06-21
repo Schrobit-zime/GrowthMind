@@ -19,13 +19,7 @@ describe("EmptyState 组件", () => {
 
   it("应该渲染操作按钮", () => {
     const onAction = vi.fn();
-    render(
-      <EmptyState
-        title="暂无数据"
-        actionLabel="添加记录"
-        onAction={onAction}
-      />
-    );
+    render(<EmptyState title="暂无数据" actionLabel="添加记录" onAction={onAction} />);
 
     const button = screen.getByText("添加记录");
     expect(button).toBeInTheDocument();
@@ -35,12 +29,7 @@ describe("EmptyState 组件", () => {
   });
 
   it("应该渲染自定义图标", () => {
-    render(
-      <EmptyState
-        title="暂无数据"
-        icon={<div data-testid="custom-icon">图标</div>}
-      />
-    );
+    render(<EmptyState title="暂无数据" icon={<div data-testid="custom-icon">图标</div>} />);
     expect(screen.getByTestId("custom-icon")).toBeInTheDocument();
   });
 

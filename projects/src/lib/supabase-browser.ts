@@ -35,21 +35,14 @@ function waitForConfig(maxWait = 5000): Promise<boolean> {
       if (!resolved) {
         resolved = true;
         window.removeEventListener(SUPABASE_CONFIG_READY_EVENT, handler);
-        resolve(
-          !!(
-            window.__SUPABASE_CONFIG__?.url &&
-            window.__SUPABASE_CONFIG__?.anonKey
-          )
-        );
+        resolve(!!(window.__SUPABASE_CONFIG__?.url && window.__SUPABASE_CONFIG__?.anonKey));
       }
     }, maxWait);
   });
 }
 
 function isConfigReady(): boolean {
-  return !!(
-    window.__SUPABASE_CONFIG__?.url && window.__SUPABASE_CONFIG__?.anonKey
-  );
+  return !!(window.__SUPABASE_CONFIG__?.url && window.__SUPABASE_CONFIG__?.anonKey);
 }
 
 function getSupabaseBrowserClient(): SupabaseClient {
@@ -58,7 +51,7 @@ function getSupabaseBrowserClient(): SupabaseClient {
 
     if (!config || !config.url || !config.anonKey) {
       throw new Error(
-        "Supabase config not found. Make sure SupabaseConfigProvider is included in your layout.tsx."
+        "Supabase config not found. Make sure SupabaseConfigProvider is included in your layout.tsx.",
       );
     }
 
@@ -80,7 +73,7 @@ async function sleep(ms: number): Promise<void> {
 
 async function getSupabaseBrowserClientWithRetry(
   maxRetries = 5,
-  retryInterval = 1000
+  retryInterval = 1000,
 ): Promise<SupabaseClient> {
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -102,7 +95,7 @@ async function getSupabaseBrowserClientAsync(): Promise<SupabaseClient> {
   const ready = await waitForConfig();
   if (!ready) {
     throw new Error(
-      "Supabase config not found after waiting. Make sure SupabaseConfigProvider is included in your layout.tsx"
+      "Supabase config not found after waiting. Make sure SupabaseConfigProvider is included in your layout.tsx",
     );
   }
 

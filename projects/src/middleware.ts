@@ -74,7 +74,7 @@ export async function middleware(request: NextRequest) {
     if (!allowed) {
       return NextResponse.json(
         { success: false, error: "请求过于频繁，请稍后重试" },
-        { status: 429 }
+        { status: 429 },
       );
     }
   }
@@ -85,7 +85,7 @@ export async function middleware(request: NextRequest) {
     if (!allowed) {
       return NextResponse.json(
         { success: false, error: "请求过于频繁，请稍后重试" },
-        { status: 429 }
+        { status: 429 },
       );
     }
   }
@@ -96,7 +96,7 @@ export async function middleware(request: NextRequest) {
     if (!allowed) {
       return NextResponse.json(
         { success: false, error: "请求过于频繁，请稍后重试" },
-        { status: 429 }
+        { status: 429 },
       );
     }
   }
@@ -111,8 +111,8 @@ export async function middleware(request: NextRequest) {
 
   // 从 cookie 或 Authorization 头获取 access token
   // 优先读取 httpOnly 的 sb-access-token，fallback 到 Authorization header
-  const accessToken = getTokenFromRequest(request)
-    || request.cookies.get("sb-growthmind-auth-token")?.value;
+  const accessToken =
+    getTokenFromRequest(request) || request.cookies.get("sb-growthmind-auth-token")?.value;
 
   // 公开路由不需要鉴权
   const publicRoutes = ["/login", "/api/supabase-config"];
@@ -121,10 +121,7 @@ export async function middleware(request: NextRequest) {
   // 无 token 且非公开路由：拒绝访问
   if (!accessToken && !isPublic) {
     if (pathname.startsWith("/api/")) {
-      return NextResponse.json(
-        { success: false, error: "未授权" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: "未授权" }, { status: 401 });
     }
     return redirectToLogin(request);
   }
@@ -134,22 +131,22 @@ export async function middleware(request: NextRequest) {
   if (accessToken && !isPublic) {
     try {
       const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, accessToken);
-      const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser(accessToken);
       if (error || !user) {
         if (pathname.startsWith("/api/")) {
           return NextResponse.json(
             { success: false, error: "token 无效或已过期" },
-            { status: 401 }
+            { status: 401 },
           );
         }
         return redirectToLogin(request);
       }
     } catch {
       if (pathname.startsWith("/api/")) {
-        return NextResponse.json(
-          { success: false, error: "认证服务异常" },
-          { status: 401 }
-        );
+        return NextResponse.json({ success: false, error: "认证服务异常" }, { status: 401 });
       }
       return redirectToLogin(request);
     }
@@ -159,7 +156,10 @@ export async function middleware(request: NextRequest) {
   if (isAdminRoute(pathname) && accessToken) {
     try {
       const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, accessToken);
-      const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser(accessToken);
       if (error || !user) {
         return redirectToLogin(request);
       }
@@ -175,10 +175,7 @@ export async function middleware(request: NextRequest) {
     } catch {
       // catch 块对 API 请求返回 401/403
       if (pathname.startsWith("/api/")) {
-        return NextResponse.json(
-          { success: false, error: "未授权" },
-          { status: 401 }
-        );
+        return NextResponse.json({ success: false, error: "未授权" }, { status: 401 });
       }
       return redirectToLogin(request);
     }

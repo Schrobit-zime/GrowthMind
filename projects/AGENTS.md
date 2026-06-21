@@ -82,37 +82,41 @@ src/
 ## 代码风格指南
 
 ### TypeScript
+
 - 严格模式心智：禁止隐式 `any`、`as any`；函数参数/返回值/事件对象必须有类型
 - 禁止在 JSX render 中直接使用 `typeof window`、`Date.now()`、`Math.random()` 等动态值
 - 使用 `'use client'` + `useEffect` + `useState` 处理客户端动态内容
 
 ### React / Next.js
+
 - 禁止使用 `<head>` 标签，使用 `generateMetadata` 或 `ReactDOM.preconnect/preload`
 - 禁止非法 HTML 嵌套（如 `<p>` 嵌套 `<div>`）
 - 动态路由参数使用 `params: Promise<{ id: string }>` 模式（Next.js 16）
 - 配置路径使用 `path.resolve(__dirname, ...)` 等动态拼接，禁止硬编码绝对路径
 
 ### 样式
+
 - 使用 Tailwind CSS v4 utility class，Design Token 定义在 `globals.css` 的 `@theme` 中
 - 变量命名遵循 shadcn/ui 规范：`--primary` / `--primary-foreground` / `--foreground` / `--muted` / `--muted-foreground` / `--card` / `--border` / `--destructive`
 - 原型 HTML 是唯一视觉标准，实现时完整迁移 class（变量名按映射表转换）
 
 ### API Routes
+
 - 统一响应格式：`{ success: boolean, data?: T, error?: string }`
 - 数据库操作通过 `getSupabaseClient()` 获取客户端，使用 snake_case 列名（数据库实际列名）
 - 流式输出使用 SSE 协议：`Content-Type: text/event-stream` + `ReadableStream`
 
 ## 数据库 Schema
 
-| 表名 | 说明 | 关键字段 |
-|------|------|---------|
-| `profiles` | 用户表 | id, email, role(admin/user), display_name |
-| `records` | 成长记录 | id, user_id, time_dimension, record_date, learning/work/life/health/mood(JSONB), mood_score, summary, goal_id |
-| `goals` | 目标 | id, user_id, name, dimension, metric, target_value, current_value, deadline, status |
-| `supervision_relations` | 监督关系 | id, admin_user_id, supervised_user_id, status |
-| `reminder_rules` | 提醒规则 | id, admin_user_id, supervised_user_id, type, frequency, enabled |
-| `gateway_usage_logs` | 网关用量 | id, user_id, provider, model, tokens_in, tokens_out, cost |
-| `analysis_history` | 分析历史 | id, user_id, analysis_type, input_summary, result, created_at |
+| 表名                    | 说明     | 关键字段                                                                                                      |
+| ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
+| `profiles`              | 用户表   | id, email, role(admin/user), display_name                                                                     |
+| `records`               | 成长记录 | id, user_id, time_dimension, record_date, learning/work/life/health/mood(JSONB), mood_score, summary, goal_id |
+| `goals`                 | 目标     | id, user_id, name, dimension, metric, target_value, current_value, deadline, status                           |
+| `supervision_relations` | 监督关系 | id, admin_user_id, supervised_user_id, status                                                                 |
+| `reminder_rules`        | 提醒规则 | id, admin_user_id, supervised_user_id, type, frequency, enabled                                               |
+| `gateway_usage_logs`    | 网关用量 | id, user_id, provider, model, tokens_in, tokens_out, cost                                                     |
+| `analysis_history`      | 分析历史 | id, user_id, analysis_type, input_summary, result, created_at                                                 |
 
 ## 认证与权限
 
@@ -124,6 +128,7 @@ src/
 ## 设计规范
 
 详见 `DESIGN.md`。核心要点：
+
 - 深色背景 #070A14，毛玻璃卡片 rgba(255,255,255,.08)
 - 主色 #7C5CFF，强调色 #69E7FF
 - 字体 Inter / Manrope，标题紧凑，数字放大
@@ -132,13 +137,17 @@ src/
 ## 常见问题
 
 ### TypeScript 报错 "Property 'select' does not exist on type 'SupabaseClient'"
+
 使用 `getSupabaseClient()` 返回的是 Supabase JS 客户端，支持 `.from().select()` 等链式调用。如果 IDE 类型推断失败，检查 `@supabase/supabase-js` 版本。
 
 ### 页面样式与原型不一致
+
 检查 `globals.css` 中 `@theme` 变量是否完整，对照原型 HTML 的 `@theme` 逐项核对。变量名需按映射表转换（如原型 `--color-on-primary` → 项目 `--primary-foreground`）。
 
 ### API 返回 500 "API Key 未配置"
+
 `/api/analysis` 和 `/api/gateway` 依赖环境变量（如 `DEEPSEEK_API_KEY`），需在部署环境配置。
 
 ### 记录创建后 PUT 返回 404
+
 检查 `record_date` 字段格式（应为 `YYYY-MM-DD`），以及 `time_dimension` 是否为合法值（daily/weekly/monthly/yearly/custom）。

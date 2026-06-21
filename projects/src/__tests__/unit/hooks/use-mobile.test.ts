@@ -6,12 +6,15 @@ describe("useIsMobile Hook", () => {
   const originalInnerWidth = window.innerWidth;
 
   beforeEach(() => {
-    vi.stubGlobal("matchMedia", vi.fn().mockImplementation((query) => ({
-      matches: false,
-      media: query,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    })));
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    );
   });
 
   afterEach(() => {
@@ -51,12 +54,15 @@ describe("useIsMobile Hook", () => {
 
   it("应该注册 matchMedia change 监听器", () => {
     const addEventListener = vi.fn();
-    vi.stubGlobal("matchMedia", vi.fn().mockImplementation((query) => ({
-      matches: false,
-      media: query,
-      addEventListener,
-      removeEventListener: vi.fn(),
-    })));
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        addEventListener,
+        removeEventListener: vi.fn(),
+      })),
+    );
 
     renderHook(() => useIsMobile());
     expect(addEventListener).toHaveBeenCalledWith("change", expect.any(Function));

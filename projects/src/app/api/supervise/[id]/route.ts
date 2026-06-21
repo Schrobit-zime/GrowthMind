@@ -7,7 +7,7 @@ import { handleApiError } from "@/lib/errors";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
@@ -18,10 +18,9 @@ export async function DELETE(
     await db
       .update(supervisionRelations)
       .set({ active: false })
-      .where(and(
-        eq(supervisionRelations.id, id),
-        eq(supervisionRelations.adminUserId, auth.user.id)
-      ));
+      .where(
+        and(eq(supervisionRelations.id, id), eq(supervisionRelations.adminUserId, auth.user.id)),
+      );
 
     return NextResponse.json({ success: true, message: "已解除监督" });
   } catch (error) {

@@ -67,9 +67,7 @@ export class GlobalErrorBoundary extends Component<
               <AlertTriangle className="w-6 h-6 text-destructive" />
             </div>
 
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              组件渲染错误
-            </h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">组件渲染错误</h3>
             <p className="text-sm text-muted-foreground mb-3">
               {this.state.error?.message || "发生未知错误，请尝试刷新页面。"}
             </p>

@@ -11,9 +11,7 @@ describe("cn()", () => {
   });
 
   it("条件类名生效", () => {
-    expect(cn("base", true && "active", false && "inactive")).toBe(
-      "base active"
-    );
+    expect(cn("base", true && "active", false && "inactive")).toBe("base active");
   });
 
   it("tailwind 冲突合并（twMerge）", () => {

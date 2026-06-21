@@ -23,9 +23,7 @@ export async function getRecordsByGoalId(goalId: string, limit = 30) {
   const result = await db
     .select()
     .from(records)
-    .where(
-      and(eq(records.goalId, goalId), eq(records.userId, user.id))
-    )
+    .where(and(eq(records.goalId, goalId), eq(records.userId, user.id)))
     .limit(limit);
 
   return result;

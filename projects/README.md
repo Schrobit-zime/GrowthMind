@@ -60,9 +60,9 @@ server/
 
 ```tsx
 // ✅ 推荐：使用 shadcn 基础组件
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 export default function MyComponent() {
   return (
@@ -110,11 +110,11 @@ src/app/api/users/route.ts
 
 ```tsx
 // src/app/about/page.tsx
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 
 export const metadata = {
-  title: '关于我们',
-  description: '关于页面描述',
+  title: "关于我们",
+  description: "关于页面描述",
 };
 
 export default function AboutPage() {
@@ -131,11 +131,7 @@ export default function AboutPage() {
 
 ```tsx
 // src/app/posts/[id]/page.tsx
-export default async function PostPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   return <div>文章 ID: {id}</div>;
@@ -146,7 +142,7 @@ export default async function PostPage({
 
 ```tsx
 // src/app/api/users/route.ts
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function GET() {
   return NextResponse.json({ users: [] });
@@ -188,21 +184,13 @@ pnpm add -D package-name
 ```tsx
 // 使用 Tailwind 类名
 <div className="flex items-center gap-4 p-4 rounded-lg bg-background">
-  <Button className="bg-primary text-primary-foreground">
-    主要按钮
-  </Button>
-</div>
+  <Button className="bg-primary text-primary-foreground">主要按钮</Button>
+</div>;
 
 // 使用 cn() 工具函数合并类名
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
-<div className={cn(
-  "base-class",
-  condition && "conditional-class",
-  className
-)}>
-  内容
-</div>
+<div className={cn("base-class", condition && "conditional-class", className)}>内容</div>;
 ```
 
 **主题变量**
@@ -222,21 +210,21 @@ import { cn } from '@/lib/utils';
 推荐使用 `react-hook-form` + `zod` 进行表单开发：
 
 ```tsx
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
-  username: z.string().min(2, '用户名至少 2 个字符'),
-  email: z.string().email('请输入有效的邮箱'),
+  username: z.string().min(2, "用户名至少 2 个字符"),
+  email: z.string().email("请输入有效的邮箱"),
 });
 
 export default function MyForm() {
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: { username: '', email: '' },
+    defaultValues: { username: "", email: "" },
   });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
@@ -245,8 +233,8 @@ export default function MyForm() {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
-      <Input {...form.register('username')} />
-      <Input {...form.register('email')} />
+      <Input {...form.register("username")} />
+      <Input {...form.register("email")} />
       <Button type="submit">提交</Button>
     </form>
   );
@@ -260,8 +248,8 @@ export default function MyForm() {
 ```tsx
 // src/app/posts/page.tsx
 async function getPosts() {
-  const res = await fetch('https://api.example.com/posts', {
-    cache: 'no-store', // 或 'force-cache'
+  const res = await fetch("https://api.example.com/posts", {
+    cache: "no-store", // 或 'force-cache'
   });
   return res.json();
 }
@@ -271,7 +259,7 @@ export default async function PostsPage() {
 
   return (
     <div>
-      {posts.map(post => (
+      {posts.map((post) => (
         <div key={post.id}>{post.title}</div>
       ))}
     </div>
@@ -282,16 +270,16 @@ export default async function PostsPage() {
 **客户端组件**
 
 ```tsx
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function ClientComponent() {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch('/api/data')
-      .then(res => res.json())
+    fetch("/api/data")
+      .then((res) => res.json())
       .then(setData);
   }, []);
 
@@ -319,7 +307,7 @@ export default function ClientComponent() {
 
 ```tsx
 // src/lib/store.ts
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface Store {
   count: number;

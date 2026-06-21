@@ -77,8 +77,10 @@ export default function GoalsPage() {
         </div>
       )}
 
-      <Link href="/goals"
-        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center shadow-float hover:shadow-glow transition-all duration-300 hover:scale-105 z-40">
+      <Link
+        href="/goals"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center shadow-float hover:shadow-glow transition-all duration-300 hover:scale-105 z-40"
+      >
         <Plus className="w-6 h-6 text-white" />
       </Link>
     </div>

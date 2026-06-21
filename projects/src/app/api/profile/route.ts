@@ -25,18 +25,11 @@ export async function GET(request: NextRequest) {
         .where(eq(profiles.userId, auth.user.id))
         .limit(1);
       if (!ownProfile[0] || ownProfile[0].role !== "admin") {
-        return NextResponse.json(
-          { success: false, error: "无权访问他人资料" },
-          { status: 403 }
-        );
+        return NextResponse.json({ success: false, error: "无权访问他人资料" }, { status: 403 });
       }
     }
 
-    const result = await db
-      .select()
-      .from(profiles)
-      .where(eq(profiles.userId, userId))
-      .limit(1);
+    const result = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
 
     return NextResponse.json({ success: true, data: result[0] || null });
   } catch (error) {

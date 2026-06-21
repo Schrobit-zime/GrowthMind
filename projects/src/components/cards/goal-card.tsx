@@ -2,7 +2,11 @@ import Link from "next/link";
 import { CheckCircle2, ChevronRight } from "lucide-react";
 
 const dimLabel: Record<string, string> = {
-  learning: "学习", work: "工作", life: "生活", health: "身体", mood: "心情",
+  learning: "学习",
+  work: "工作",
+  life: "生活",
+  health: "身体",
+  mood: "心情",
 };
 
 interface GoalCardProps {
@@ -17,8 +21,19 @@ interface GoalCardProps {
   href?: string;
 }
 
-export function GoalCard({ id, name, dimension, metric, currentValue, targetValue, deadline, status, href }: GoalCardProps) {
-  const progress = targetValue === 0 ? 0 : Math.min(100, Math.round((currentValue / targetValue) * 100));
+export function GoalCard({
+  id,
+  name,
+  dimension,
+  metric,
+  currentValue,
+  targetValue,
+  deadline,
+  status,
+  href,
+}: GoalCardProps) {
+  const progress =
+    targetValue === 0 ? 0 : Math.min(100, Math.round((currentValue / targetValue) * 100));
   const linkHref = href || `/goal-detail?goal_id=${id}`;
 
   return (
@@ -31,9 +46,11 @@ export function GoalCard({ id, name, dimension, metric, currentValue, targetValu
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-foreground">{name}</h3>
-            <span className={`px-2 py-0.5 text-xs rounded-md ${
-              status === "completed" ? "bg-success/10 text-success" : "bg-primary/10 text-primary"
-            }`}>
+            <span
+              className={`px-2 py-0.5 text-xs rounded-md ${
+                status === "completed" ? "bg-success/10 text-success" : "bg-primary/10 text-primary"
+              }`}
+            >
               {status === "completed" ? "已完成" : "进行中"}
             </span>
           </div>
@@ -46,9 +63,12 @@ export function GoalCard({ id, name, dimension, metric, currentValue, targetValu
 
       <div className="flex items-center gap-3">
         <div className="flex-1 h-2 bg-surface-container rounded-full overflow-hidden">
-          <div className={`h-full rounded-full transition-all duration-500 ${
-            status === "completed" ? "bg-success" : "bg-gradient-to-r from-primary to-accent"
-          }`} style={{ width: `${progress}%` }} />
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              status === "completed" ? "bg-success" : "bg-gradient-to-r from-primary to-accent"
+            }`}
+            style={{ width: `${progress}%` }}
+          />
         </div>
         <span className="text-sm font-bold text-foreground w-10 text-right">{progress}%</span>
       </div>

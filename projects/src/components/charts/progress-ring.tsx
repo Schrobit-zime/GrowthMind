@@ -48,12 +48,8 @@ export default function ProgressRing({
         </PieChart>
       </ResponsiveContainer>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xl font-bold text-foreground">
-          {clampedProgress}%
-        </span>
-        {label && (
-          <span className="text-xs text-muted-foreground mt-0.5">{label}</span>
-        )}
+        <span className="text-xl font-bold text-foreground">{clampedProgress}%</span>
+        {label && <span className="text-xs text-muted-foreground mt-0.5">{label}</span>}
       </div>
     </div>
   );

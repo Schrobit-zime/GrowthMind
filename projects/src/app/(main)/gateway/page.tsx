@@ -19,11 +19,34 @@ interface GatewayData {
 }
 
 /** 厂商中文名和图标颜色映射 */
-const providerMeta: Record<string, { label: string; color: string; bg: string; iconColor: string }> = {
-  deepseek: { label: "DeepSeek", color: "text-blue-400", bg: "bg-blue-400/10", iconColor: "text-blue-400" },
-  openai: { label: "OpenAI", color: "text-emerald-400", bg: "bg-emerald-400/10", iconColor: "text-emerald-400" },
-  claude: { label: "Claude", color: "text-amber-400", bg: "bg-amber-400/10", iconColor: "text-amber-400" },
-  zhipu: { label: "智谱", color: "text-purple-400", bg: "bg-purple-400/10", iconColor: "text-purple-400" },
+const providerMeta: Record<
+  string,
+  { label: string; color: string; bg: string; iconColor: string }
+> = {
+  deepseek: {
+    label: "DeepSeek",
+    color: "text-blue-400",
+    bg: "bg-blue-400/10",
+    iconColor: "text-blue-400",
+  },
+  openai: {
+    label: "OpenAI",
+    color: "text-emerald-400",
+    bg: "bg-emerald-400/10",
+    iconColor: "text-emerald-400",
+  },
+  claude: {
+    label: "Claude",
+    color: "text-amber-400",
+    bg: "bg-amber-400/10",
+    iconColor: "text-amber-400",
+  },
+  zhipu: {
+    label: "智谱",
+    color: "text-purple-400",
+    bg: "bg-purple-400/10",
+    iconColor: "text-purple-400",
+  },
 };
 
 export default function GatewayPage() {
@@ -133,52 +156,48 @@ export default function GatewayPage() {
       {/* Provider cards */}
       <Card className="backdrop-blur-md bg-white/5 border-white/10">
         <CardHeader>
-          <h3 className="text-sm font-semibold text-foreground">
-            已接入厂商
-          </h3>
+          <h3 className="text-sm font-semibold text-foreground">已接入厂商</h3>
         </CardHeader>
         <CardContent>
-        {providers.length === 0 ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Server className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">暂无已配置的模型厂商</p>
+          {providers.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <Server className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">暂无已配置的模型厂商</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {providers.map((provider) => {
-              const meta = providerMeta[provider] || {
-                label: provider,
-                color: "text-muted-foreground",
-                bg: "bg-surface/40",
-                iconColor: "text-muted-foreground",
-              };
-              return (
-                <div
-                  key={provider}
-                  className={`flex items-center gap-4 p-4 rounded-xl border border-border/20 ${meta.bg} hover:bg-surface/60 transition-all`}
-                >
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {providers.map((provider) => {
+                const meta = providerMeta[provider] || {
+                  label: provider,
+                  color: "text-muted-foreground",
+                  bg: "bg-surface/40",
+                  iconColor: "text-muted-foreground",
+                };
+                return (
                   <div
-                    className={`w-10 h-10 rounded-lg ${meta.bg} flex items-center justify-center`}
+                    key={provider}
+                    className={`flex items-center gap-4 p-4 rounded-xl border border-border/20 ${meta.bg} hover:bg-surface/60 transition-all`}
                   >
-                    <Server className={`w-5 h-5 ${meta.iconColor}`} />
+                    <div
+                      className={`w-10 h-10 rounded-lg ${meta.bg} flex items-center justify-center`}
+                    >
+                      <Server className={`w-5 h-5 ${meta.iconColor}`} />
+                    </div>
+                    <div className="flex-1">
+                      <p className={`text-sm font-semibold ${meta.color}`}>{meta.label}</p>
+                      <p className="text-xs text-muted-foreground">{provider}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-success" />
+                      <span className="text-xs text-muted-foreground">可用</span>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className={`text-sm font-semibold ${meta.color}`}>
-                      {meta.label}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{provider}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-success" />
-                    <span className="text-xs text-muted-foreground">可用</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -186,9 +205,7 @@ export default function GatewayPage() {
       {gatewayData?.message && (
         <Card className="backdrop-blur-md bg-white/5 border-white/10">
           <CardHeader>
-            <h3 className="text-sm font-semibold text-foreground">
-              网关信息
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">网关信息</h3>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">{gatewayData.message}</p>
@@ -202,9 +219,7 @@ export default function GatewayPage() {
           <h3 className="text-sm font-semibold text-foreground">调用明细</h3>
         </div>
         <div className="p-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            网关统计数据将在 LLM 调用产生后自动记录
-          </p>
+          <p className="text-sm text-muted-foreground">网关统计数据将在 LLM 调用产生后自动记录</p>
           <p className="text-xs text-muted-foreground/60 mt-1">
             使用智能分析功能后，此处将展示用量图表
           </p>

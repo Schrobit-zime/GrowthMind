@@ -7,10 +7,7 @@ import { handleApiError } from "@/lib/errors";
 import { validateBody } from "@/lib/validations/validate";
 import { updateReminderRuleSchema } from "@/lib/validations/supervise";
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
 
@@ -28,10 +25,7 @@ export async function PUT(
     const result = await db
       .update(reminderRules)
       .set(updateData)
-      .where(and(
-        eq(reminderRules.id, id),
-        eq(reminderRules.adminUserId, auth.user.id)
-      ))
+      .where(and(eq(reminderRules.id, id), eq(reminderRules.adminUserId, auth.user.id)))
       .returning();
 
     if (!result.length) {
@@ -45,7 +39,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
@@ -55,10 +49,7 @@ export async function DELETE(
 
     await db
       .delete(reminderRules)
-      .where(and(
-        eq(reminderRules.id, id),
-        eq(reminderRules.adminUserId, auth.user.id)
-      ));
+      .where(and(eq(reminderRules.id, id), eq(reminderRules.adminUserId, auth.user.id)));
 
     return NextResponse.json({ success: true, message: "规则已删除" });
   } catch (error) {

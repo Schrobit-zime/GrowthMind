@@ -46,10 +46,7 @@ export function ExportButton({ type }: { type: "records" | "goals" }) {
       </button>
       {show && (
         <>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setShow(false)}
-          />
+          <div className="fixed inset-0 z-10" onClick={() => setShow(false)} />
           <div className="absolute right-0 top-full mt-1 bg-surface/95 backdrop-blur-xl border border-border/20 rounded-xl shadow-float z-20 py-1 min-w-[140px]">
             <button
               onClick={() => handleExport("csv")}
