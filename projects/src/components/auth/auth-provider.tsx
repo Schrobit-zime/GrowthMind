@@ -52,19 +52,44 @@ async function setAuthCookie(token: string | null) {
   }
 }
 
+function clearBrowserAuthState() {
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith("sb-") || key.includes("supabase")) {
+      localStorage.removeItem(key);
+    }
+  });
+  document.cookie = "sb-logged-in=; path=/; max-age=0";
+  document.cookie = "sb-access-token=; path=/; max-age=0";
+}
+
+async function clearServerAuthCookie() {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 2000);
+  try {
+    await fetch("/api/auth/set-cookie", { method: "DELETE", signal: controller.signal });
+  } catch {
+    // 本地状态已清理，服务端 cookie 清理失败不阻塞退出
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = useCallback(async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string, accessToken?: string) => {
     try {
-      const supabase = await getSupabaseBrowserClientAsync();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      let token = accessToken;
+      if (!token) {
+        const supabase = await getSupabaseBrowserClientAsync();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        token = session?.access_token;
+      }
       const res = await fetch(`/api/profile?userId=${encodeURIComponent(userId)}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -108,12 +133,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
 
         if (currentSession?.user) {
+          await setAuthCookie(currentSession.access_token);
           setSession(currentSession);
           setUser(currentSession.user);
-          setAuthCookie(currentSession.access_token);
-          await fetchProfile(currentSession.user.id);
+          await fetchProfile(currentSession.user.id, currentSession.access_token);
         } else {
-          setAuthCookie(null);
+          await setAuthCookie(null);
         }
       } catch (err) {
         console.error("Auth init error:", err);
@@ -143,19 +168,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!mounted) return;
 
           if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+            if (newSession?.access_token) {
+              await setAuthCookie(newSession.access_token);
+            }
             setSession(newSession);
             setUser(newSession?.user ?? null);
-            if (newSession?.access_token) {
-              setAuthCookie(newSession.access_token);
-            }
             if (newSession?.user) {
-              await fetchProfile(newSession.user.id);
+              await fetchProfile(newSession.user.id, newSession.access_token);
             }
           } else if (event === "SIGNED_OUT") {
+            clearBrowserAuthState();
             setSession(null);
             setUser(null);
             setProfile(null);
-            setAuthCookie(null);
+            clearServerAuthCookie();
           }
         });
         unsubscribe = data.subscription.unsubscribe;
@@ -173,13 +199,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchProfile]);
 
   const signOut = useCallback(async () => {
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    clearBrowserAuthState();
+    clearServerAuthCookie();
+
     try {
       const supabase = await getSupabaseBrowserClientAsync();
-      await supabase.auth.signOut();
-      setUser(null);
-      setSession(null);
-      setProfile(null);
-      setAuthCookie(null);
+      supabase.auth.signOut().catch((err) => {
+        console.warn("Remote sign out failed:", err);
+      });
     } catch (err) {
       console.error("Sign out error:", err);
     }

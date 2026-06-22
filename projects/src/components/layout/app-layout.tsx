@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { useState, useRef, useEffect } from "react";
@@ -34,7 +34,6 @@ const adminNavItems = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { user, profile, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
@@ -66,9 +65,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     try {
       await signOut();
       setSignOutConfirmOpen(false);
-      router.push("/login");
+      window.location.replace("/login");
     } catch {
-      // 退出失败时重置状态，允许用户重试
+      // signOut 内部已处理错误
+    } finally {
       setSigningOut(false);
     }
   };

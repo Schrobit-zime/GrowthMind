@@ -99,18 +99,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.json({ success: false, error: "token 无效或已过期" }, { status: 401 });
     }
 
-    // 管理员 API 路由保护
-    const adminRoutes = ["/api/supervise", "/api/gateway"];
-    if (adminRoutes.some((r) => pathname.startsWith(r))) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-      if (profile?.role !== "admin") {
-        return NextResponse.json({ success: false, error: "未授权" }, { status: 403 });
-      }
-    }
+    // 仅验证 token；具体权限由 API 路由使用服务端数据库校验
   } catch {
     return NextResponse.json({ success: false, error: "认证服务异常" }, { status: 401 });
   }

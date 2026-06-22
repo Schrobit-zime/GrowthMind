@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest, unauthorizedResponse } from "@/lib/api-auth";
+import { isAdminUser } from "@/lib/admin-auth";
 import { AppError, ErrorCode, handleApiError } from "@/lib/errors";
 import { db } from "@/lib/db";
 import { gatewayUsageLog } from "@/storage/database/shared/schema";
@@ -56,6 +57,23 @@ const providerConfigs: Record<
     apiKeyEnv: "ZHIPU_API_KEY",
   },
 };
+
+/** 在指定时间内读取流式分片，避免上游长时间无响应导致请求挂起 */
+async function readStreamChunk<T>(
+  reader: ReadableStreamDefaultReader<T>,
+  timeoutMs: number,
+): Promise<ReadableStreamReadResult<T>> {
+  let timeout: ReturnType<typeof setTimeout>;
+  return Promise.race([
+    reader.read(),
+    new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => {
+        reader.cancel().catch(() => {});
+        reject(new Error("Stream timeout"));
+      }, timeoutMs);
+    }),
+  ]).finally(() => clearTimeout(timeout));
+}
 
 /** 简单成本计算函数：根据厂商和 token 数计算费用（美元） */
 function calculateCost(provider: string, tokensIn: number, tokensOut: number): number {
@@ -138,25 +156,17 @@ export async function POST(request: NextRequest) {
     if (stream) {
       // 读取流式响应，累积内容并传递给客户端
       const reader = response.body!.getReader();
-      const decoder = new TextDecoder();
       const promptTokens = 0;
       const completionTokens = 0;
 
       const outStream = new ReadableStream({
         async start(controller) {
           try {
-            let lastChunkTime = Date.now();
             const TIMEOUT_MS = 30000;
 
             while (true) {
-              if (Date.now() - lastChunkTime > TIMEOUT_MS) {
-                controller.error(new Error("Stream timeout"));
-                break;
-              }
-              const { done, value } = await reader.read();
+              const { done, value } = await readStreamChunk(reader, TIMEOUT_MS);
               if (done) break;
-              lastChunkTime = Date.now();
-              const chunk = decoder.decode(value, { stream: true });
               controller.enqueue(value);
             }
             controller.close();
@@ -210,13 +220,23 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
-  return NextResponse.json({
-    success: true,
-    data: {
-      providers: Object.keys(providerConfigs),
-      status: "operational",
-      message: "Unified Model Gateway is running",
-    },
-  });
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await authenticateRequest(request);
+    if (!auth) return unauthorizedResponse();
+    if (!(await isAdminUser(auth.user.id))) {
+      return NextResponse.json({ success: false, error: "未授权" }, { status: 403 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        providers: Object.keys(providerConfigs),
+        status: "operational",
+        message: "Unified Model Gateway is running",
+      },
+    });
+  } catch (error) {
+    return handleApiError(error, "获取网关状态");
+  }
 }

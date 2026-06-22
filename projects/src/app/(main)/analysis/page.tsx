@@ -40,6 +40,7 @@ export default function AnalysisPage() {
   const [selectedDimensions, setSelectedDimensions] = useState<string[]>(["学习", "工作", "心情"]);
   const [analysisType, setAnalysisType] = useState("trend");
   const [noDataWarning, setNoDataWarning] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [fetchingRecords, setFetchingRecords] = useState(false);
 
@@ -60,13 +61,18 @@ export default function AnalysisPage() {
   const fetchHistory = useCallback(async () => {
     if (!session?.access_token) return;
     try {
+      setLoadError(null);
       const res = await fetch(`/api/analysis?limit=5`, {
         headers: { "x-session": session.access_token },
       });
       const json = await res.json();
-      if (json.success) setHistory(json.data || []);
-    } catch {
-      /* silent */
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "获取分析历史失败");
+      }
+      setHistory(json.data || []);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "获取分析历史失败";
+      setLoadError(message);
     }
   }, [session]);
 
@@ -86,6 +92,7 @@ export default function AnalysisPage() {
   const handleAnalyze = async () => {
     if (!session?.access_token) return;
     setNoDataWarning(false);
+    setLoadError(null);
     setFetchingRecords(true);
     reset();
 
@@ -100,7 +107,11 @@ export default function AnalysisPage() {
       });
       const recJson = await recRes.json();
 
-      if (!recJson.success || !recJson.data || recJson.data.length === 0) {
+      if (!recRes.ok || !recJson.success) {
+        throw new Error(recJson.error || "获取记录数据失败");
+      }
+
+      if (!recJson.data || recJson.data.length === 0) {
         setNoDataWarning(true);
         setFetchingRecords(false);
         return;
@@ -115,7 +126,9 @@ export default function AnalysisPage() {
         analysisType,
         records: recJson.data,
       });
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "获取记录数据失败";
+      setLoadError(message);
       setFetchingRecords(false);
     }
   };
@@ -205,6 +218,12 @@ export default function AnalysisPage() {
           {sseError && (
             <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4">
               <p className="text-sm text-red-400">{sseError}</p>
+            </div>
+          )}
+
+          {loadError && (
+            <div className="bg-red-400/10 border border-red-400/20 rounded-lg p-4">
+              <p className="text-sm text-red-400">{loadError}</p>
             </div>
           )}
 

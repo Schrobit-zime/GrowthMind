@@ -3,6 +3,7 @@ import { eq, desc, and } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { supervisionRelations, profiles } from "@/storage/database/shared/schema";
 import { authenticateRequest, unauthorizedResponse } from "@/lib/api-auth";
+import { isAdminUser } from "@/lib/admin-auth";
 import { validateBody } from "@/lib/validations/validate";
 import { createSupervisionSchema } from "@/lib/validations/supervise";
 import { handleApiError } from "@/lib/errors";
@@ -10,6 +11,9 @@ import { handleApiError } from "@/lib/errors";
 export async function GET(request: NextRequest) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
+  if (!(await isAdminUser(auth.user.id))) {
+    return NextResponse.json({ success: false, error: "未授权" }, { status: 403 });
+  }
 
   try {
     const data = await db.query.supervisionRelations.findMany({
@@ -30,6 +34,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
+  if (!(await isAdminUser(auth.user.id))) {
+    return NextResponse.json({ success: false, error: "未授权" }, { status: 403 });
+  }
 
   try {
     const body = await validateBody(request, createSupervisionSchema);

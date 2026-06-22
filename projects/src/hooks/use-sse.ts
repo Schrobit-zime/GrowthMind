@@ -31,6 +31,11 @@ export function useSSE(options: UseSSEOptions) {
       setError(null);
       setStreaming(true);
       const ctrl = new AbortController();
+      let timedOut = false;
+      const timeout = window.setTimeout(() => {
+        timedOut = true;
+        ctrl.abort();
+      }, 60000);
       abortRef.current = ctrl;
       try {
         const res = await fetch(options.url, {
@@ -57,7 +62,13 @@ export function useSSE(options: UseSSEOptions) {
         const decoder = new TextDecoder();
         let acc = "";
         while (true) {
-          const { done, value } = await reader.read();
+          const idleTimeout = window.setTimeout(() => {
+            timedOut = true;
+            ctrl.abort();
+          }, 30000);
+          const { done, value } = await reader
+            .read()
+            .finally(() => window.clearTimeout(idleTimeout));
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
           const lines = chunk.split("\n");
@@ -89,6 +100,11 @@ export function useSSE(options: UseSSEOptions) {
       } catch (err: unknown) {
         const e = err as { name?: string; message?: string };
         if (e.name === "AbortError") {
+          if (timedOut) {
+            const msg = "流式请求超时，请稍后重试";
+            setError(msg);
+            options.onError?.(msg);
+          }
           setStreaming(false);
           return;
         }
@@ -96,6 +112,8 @@ export function useSSE(options: UseSSEOptions) {
         setError(msg);
         setStreaming(false);
         options.onError?.(msg);
+      } finally {
+        window.clearTimeout(timeout);
       }
     },
     [options.url, session?.access_token, options.onChunk, options.onDone, options.onError, options],

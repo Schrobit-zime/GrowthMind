@@ -14,6 +14,23 @@ const analysisBodySchema = z.object({
   records: z.array(z.unknown()).min(1, "该时间范围内暂无记录数据"),
 });
 
+/** 在指定时间内读取流式分片，避免上游长时间无响应导致请求挂起 */
+async function readStreamChunk<T>(
+  reader: ReadableStreamDefaultReader<T>,
+  timeoutMs: number,
+): Promise<ReadableStreamReadResult<T>> {
+  let timeout: ReturnType<typeof setTimeout>;
+  return Promise.race([
+    reader.read(),
+    new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => {
+        reader.cancel().catch(() => {});
+        reject(new Error("Stream timeout"));
+      }, timeoutMs);
+    }),
+  ]).finally(() => clearTimeout(timeout));
+}
+
 export async function GET(request: NextRequest) {
   const auth = await authenticateRequest(request);
   if (!auth) return unauthorizedResponse();
@@ -101,17 +118,11 @@ export async function POST(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          let lastChunkTime = Date.now();
           const TIMEOUT_MS = 30000;
 
           while (true) {
-            if (Date.now() - lastChunkTime > TIMEOUT_MS) {
-              controller.error(new Error("Stream timeout"));
-              break;
-            }
-            const { done, value } = await reader.read();
+            const { done, value } = await readStreamChunk(reader, TIMEOUT_MS);
             if (done) break;
-            lastChunkTime = Date.now();
             const chunk = decoder.decode(value, { stream: true });
             accumulatedResult += chunk;
             controller.enqueue(value);

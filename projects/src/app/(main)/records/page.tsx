@@ -64,10 +64,14 @@ export default function RecordsPage() {
         headers: { "x-session": session.access_token },
       });
       const json = await res.json();
-      if (json.success) setRecords(json.data || []);
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "获取记录数据失败");
+      }
+      setRecords(json.data || []);
     } catch (err) {
       console.error("Failed to fetch records:", err);
-      setError("获取记录数据失败，请检查网络连接后重试");
+      const message = err instanceof Error ? err.message : "获取记录数据失败，请检查网络连接后重试";
+      setError(message);
     } finally {
       setLoading(false);
     }
