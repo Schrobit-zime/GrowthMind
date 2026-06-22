@@ -33,23 +33,23 @@ const templates = [
 ];
 
 const timeDimensions = [
-  "daily",
   "weekly",
   "monthly",
   "annual",
   "morning",
   "noon",
   "evening",
+  "quick_note",
   "custom",
 ];
 const timeDimLabels: Record<string, string> = {
-  daily: "日报",
   weekly: "周报",
   monthly: "月报",
   annual: "年报",
   morning: "早报",
   noon: "午报",
   evening: "晚报",
+  quick_note: "随时记",
   custom: "自定义",
 };
 const allDimensions = ["learning", "work", "life", "health", "mood"] as const;
@@ -65,7 +65,7 @@ export default function RecordFormPage() {
   const router = useRouter();
   const { session } = useAuth();
   const [activeTemplate, setActiveTemplate] = useState("full");
-  const [timeDimension, setTimeDimension] = useState("daily");
+  const [timeDimension, setTimeDimension] = useState("morning");
   const [recordDate, setRecordDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedDimensions, setSelectedDimensions] = useState<string[]>([
     "learning",

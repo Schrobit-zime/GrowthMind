@@ -18,13 +18,13 @@ const dimensionColors: Record<string, string> = {
 };
 
 const timeDimLabel: Record<string, string> = {
-  daily: "日报",
   weekly: "周报",
   monthly: "月报",
   annual: "年报",
   morning: "早报",
   noon: "午报",
   evening: "晚报",
+  quick_note: "随时记",
   custom: "自定义",
 };
 

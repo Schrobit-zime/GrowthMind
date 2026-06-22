@@ -29,9 +29,35 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const result = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
+    let profile = (await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1))[0];
 
-    return NextResponse.json({ success: true, data: result[0] || null });
+    // 查询自己的 profile，若不存在则自动创建；若存在且系统无 admin 则自动提升
+    if (userId === auth.user.id) {
+      if (!profile) {
+        const email = auth.user.email || userId.slice(0, 8);
+        const existingCount = await db.select().from(profiles).limit(1);
+        const role = existingCount.length === 0 ? "admin" : "user";
+
+        const [newProfile] = await db
+          .insert(profiles)
+          .values({ userId, displayName: email, role })
+          .returning();
+        profile = newProfile;
+      } else if (profile.role !== "admin") {
+        // 检查系统是否有 admin，若无则自动提升当前用户
+        const [admin] = await db.select().from(profiles).where(eq(profiles.role, "admin")).limit(1);
+        if (!admin) {
+          const [updated] = await db
+            .update(profiles)
+            .set({ role: "admin" })
+            .where(eq(profiles.userId, userId))
+            .returning();
+          profile = updated || profile;
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true, data: profile });
   } catch (error) {
     return handleApiError(error, "获取用户资料");
   }

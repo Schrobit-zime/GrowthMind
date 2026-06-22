@@ -13,7 +13,7 @@ const SUPABASE_CONFIG_READY_EVENT = "supabase-config-ready";
 
 let browserClient: SupabaseClient | null = null;
 
-function waitForConfig(maxWait = 5000): Promise<boolean> {
+function waitForConfig(maxWait = 2000): Promise<boolean> {
   if (window.__SUPABASE_CONFIG__?.url && window.__SUPABASE_CONFIG__?.anonKey) {
     return Promise.resolve(true);
   }
@@ -72,8 +72,8 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function getSupabaseBrowserClientWithRetry(
-  maxRetries = 5,
-  retryInterval = 1000,
+  maxRetries = 3,
+  retryInterval = 500,
 ): Promise<SupabaseClient> {
   for (let i = 0; i < maxRetries; i++) {
     try {

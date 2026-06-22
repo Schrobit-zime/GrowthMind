@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers,
       body: JSON.stringify(fetchBody),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
@@ -144,9 +145,17 @@ export async function POST(request: NextRequest) {
       const outStream = new ReadableStream({
         async start(controller) {
           try {
+            let lastChunkTime = Date.now();
+            const TIMEOUT_MS = 30000;
+
             while (true) {
+              if (Date.now() - lastChunkTime > TIMEOUT_MS) {
+                controller.error(new Error("Stream timeout"));
+                break;
+              }
               const { done, value } = await reader.read();
               if (done) break;
+              lastChunkTime = Date.now();
               const chunk = decoder.decode(value, { stream: true });
               controller.enqueue(value);
             }

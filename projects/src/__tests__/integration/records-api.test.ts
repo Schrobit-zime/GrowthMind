@@ -41,7 +41,7 @@ describe("Records API 集成测试", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          timeDimension: "daily",
+          timeDimension: "morning",
           recordDate: "2026-06-21",
         }),
       });

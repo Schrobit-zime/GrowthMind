@@ -30,18 +30,21 @@ const Heatmap = React.memo(function Heatmap({
   columns = 7,
   color = CHART_COLORS.primary,
 }: HeatmapProps) {
-  // 缓存计算密集型操作
-  const maxValue = useMemo(() => Math.max(...data.map((d) => d.value), 1), [data]);
+  const safeData = data || [];
+  const maxValue = useMemo(() => {
+    if (safeData.length === 0) return 1;
+    return Math.max(...safeData.map((d) => d.value), 1);
+  }, [safeData]);
 
   const rows = useMemo(() => {
     const result: HeatmapDataItem[][] = [];
-    for (let i = 0; i < data.length; i += columns) {
-      result.push(data.slice(i, i + columns));
+    for (let i = 0; i < safeData.length; i += columns) {
+      result.push(safeData.slice(i, i + columns));
     }
     return result;
-  }, [data, columns]);
+  }, [safeData, columns]);
 
-  if (!data || data.length === 0) {
+  if (safeData.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
         暂无活跃度数据

@@ -1,0 +1,142 @@
+{
+  "source": "飞书知识库 zhiwutech.feishu.cn/wiki/JACBwobmdi5cApkuuaWc2IcMnbg",
+  "title": "宝宝的汇报",
+  "week": 1,
+  "period": "2026-06-15 ~ 2026-06-21",
+  "goal": {
+    "name": "第1周学习任务",
+    "dimension": "learning",
+    "metric": "credits",
+    "targetValue": 3000,
+    "deadline": "2026-06-21"
+  },
+  "totalCredits": 1801,
+  "totalMinutes": 1748,
+  "completionRate": "60%",
+  "days": [
+    {
+      "date": "2026-06-15",
+      "label": "周一",
+      "learning": {
+        "minutes": 227,
+        "credits": 280,
+        "categories": ["汉语教学", "论文研究", "单词", "现代汉语", "文化要略"],
+        "details": [
+          { "item": "《国际汉语教学案例分析》笔记+反思", "minutes": 140, "credits": 150 },
+          { "item": "论文视频分析", "minutes": 20, "credits": 30 },
+          { "item": "单词背诵(新33+复习30)", "minutes": 30, "credits": 100 },
+          { "item": "现代汉语复习", "minutes": 30, "credits": 0 },
+          { "item": "《要略》卡片4张", "minutes": 7, "credits": 0 }
+        ]
+      },
+      "health": { "summary": "未健身，来月经腰酸" },
+      "mood": { "score": 5, "summary": "困，没睡午觉。早上给猫猫惹生气了，反思ing。" }
+    },
+    {
+      "date": "2026-06-16",
+      "label": "周二",
+      "learning": {
+        "minutes": 332,
+        "credits": 332,
+        "categories": ["旁听", "论文研究", "文化要略", "单词", "现代汉语", "考研英语"],
+        "details": [
+          { "item": "旁听", "minutes": 90, "credits": 90 },
+          { "item": "视频分析", "minutes": 57, "credits": 57 },
+          { "item": "《要略》卡片", "minutes": 20, "credits": 20 },
+          { "item": "单词(新30+复习30)", "minutes": 40, "credits": 40 },
+          { "item": "现代汉语", "minutes": 35, "credits": 35 },
+          { "item": "考研英语课", "minutes": 90, "credits": 90 }
+        ]
+      },
+      "health": { "summary": "胃痛头痛，胃口欠佳" },
+      "mood": { "score": 4, "summary": "猫猫凶我，有点暴躁。猫猫被我打好多次。" }
+    },
+    {
+      "date": "2026-06-17",
+      "label": "周三",
+      "learning": {
+        "minutes": 100,
+        "credits": 100,
+        "categories": ["单词"],
+        "details": [{ "item": "单词(新70+复习75)", "minutes": 100, "credits": 100 }]
+      },
+      "health": { "summary": "感觉还不错，撞到膝盖" },
+      "mood": { "score": 5, "summary": "工伤撞到膝盖！猫猫爱抚下手重了打回去了。" }
+    },
+    {
+      "date": "2026-06-18",
+      "label": "周四",
+      "learning": {
+        "minutes": 415,
+        "credits": 415,
+        "categories": ["单词", "汉语教学", "旁听", "文化要略"],
+        "details": [
+          { "item": "单词(新29+复习23)", "minutes": 30, "credits": 30 },
+          { "item": "《案例分析》笔记整理", "minutes": 270, "credits": 270 },
+          { "item": "旁听", "minutes": 100, "credits": 100 },
+          { "item": "《要略》卡片(复习49+新1)", "minutes": 15, "credits": 15 }
+        ]
+      },
+      "health": { "summary": "胃疼胃口欠佳，晚饭吃的还比较多" },
+      "mood": {
+        "score": 6,
+        "summary": "比较平静。杨梅好酸，荔枝小番茄樱桃好吃。用棍子打人手感不好。"
+      }
+    },
+    {
+      "date": "2026-06-19",
+      "label": "周五",
+      "learning": {
+        "minutes": 90,
+        "credits": 90,
+        "categories": ["汉语教学", "工作", "单词", "健身"],
+        "details": [
+          { "item": "《案例分析》总结反思", "minutes": 30, "credits": 30 },
+          { "item": "机构课程备忘", "minutes": 30, "credits": 30 },
+          { "item": "单词(新30+复习30)", "minutes": 30, "credits": 30 }
+        ]
+      },
+      "health": { "summary": "头疼，午饭胃口可以，上肢锻炼+足弓训练" },
+      "mood": { "score": 6, "summary": "困。新爱称'小娇娇'。一大早找不到书包在桌子下。" }
+    },
+    {
+      "date": "2026-06-20",
+      "label": "周六",
+      "learning": {
+        "minutes": 398,
+        "credits": 398,
+        "categories": ["现代汉语", "工作", "教案", "单词", "文化要略", "健身"],
+        "details": [
+          { "item": "现代汉语复习8-12页", "minutes": 100, "credits": 100 },
+          { "item": "PPT修订上传", "minutes": 79, "credits": 79 },
+          { "item": "教案(约一半)", "minutes": 180, "credits": 180 },
+          { "item": "单词(新30+复习30)", "minutes": 30, "credits": 30 },
+          { "item": "要略卡片9张", "minutes": 9, "credits": 9 }
+        ]
+      },
+      "health": { "summary": "10个俯卧撑+足弓训练" },
+      "mood": {
+        "score": 7,
+        "summary": "写教案写晕了。凉拌牛肉好吃，妹妹拿甜品舒芙蕾香蕉酥芝士火腿派。"
+      }
+    },
+    {
+      "date": "2026-06-21",
+      "label": "周日",
+      "learning": {
+        "minutes": 186,
+        "credits": 186,
+        "categories": ["教案", "单词", "健身"],
+        "details": [
+          { "item": "教案(未完成)", "minutes": 106, "credits": 106 },
+          { "item": "单词(新60+复习90)", "minutes": 80, "credits": 80 }
+        ]
+      },
+      "health": { "summary": "足弓训练" },
+      "mood": {
+        "score": 5,
+        "summary": "狗屎教案不想当教师。打雷雷害怕怕。学的好少反思ing。炒榨面好吃。"
+      }
+    }
+  ]
+}

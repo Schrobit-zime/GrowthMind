@@ -20,10 +20,12 @@ export default function LoginPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && user) {
+      setRedirecting(true);
       router.replace("/");
     }
   }, [user, authLoading, router]);
@@ -107,7 +109,14 @@ export default function LoginPage() {
     );
   }
 
-  if (user) return null;
+  // 已登录用户正在跳转，显示 loading 避免页面 abort
+  if (user || redirecting) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-background overflow-hidden">

@@ -1,0 +1,9 @@
+- [x] useFetch 在 session 为空时 loading 设置为 false
+- [x] 主页 useFetch 添加 enabled 选项
+- [x] 记录页 fetchRecords 在 session 为空时 setLoading(false)
+- [x] (main)/layout.tsx 添加客户端认证守卫
+- [x] analysis/route.ts 流式响应添加超时保护
+- [x] gateway/route.ts 流式响应添加超时保护
+- [x] 未登录访问 `/` 重定向到 `/login`
+- [x] /login 页面正常返回 200
+- [x] /api/supabase-config 正常返回配置数据

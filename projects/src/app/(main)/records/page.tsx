@@ -14,17 +14,17 @@ import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { ErrorState } from "@/components/shared/error-state";
 import { TagGroup } from "@/components/shared/tag-group";
 
-const timeDimensions = ["全部", "日报", "周报", "月报", "年报", "早报", "午报", "晚报"];
+const timeDimensions = ["全部", "周报", "月报", "年报", "早报", "午报", "晚报", "随时记"];
 
 const dimensionMap: Record<string, string> = {
   全部: "all",
-  日报: "daily",
   周报: "weekly",
   月报: "monthly",
   年报: "annual",
   早报: "morning",
   午报: "noon",
   晚报: "evening",
+  随时记: "quick_note",
 };
 
 interface RecordItem {
@@ -50,7 +50,10 @@ export default function RecordsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchRecords = useCallback(async () => {
-    if (!session?.access_token) return;
+    if (!session?.access_token) {
+      setLoading(false);
+      return;
+    }
     try {
       const params = new URLSearchParams();
       const dim = selectedDimensions[0];

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { NextIntlClientProvider } from "next-intl";
@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "GrowthMind - 个人成长多维数据记录与智能分析平台",
   description: "记录学习、工作、生活、身体、心情等多维数据，AI 驱动趋势分析与优化建议",
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
   themeColor: "#7C5CFF",
 };
 

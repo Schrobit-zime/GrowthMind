@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 const TimeDimensionEnum = z.enum([
-  "daily",
   "weekly",
   "monthly",
   "semiannual",
@@ -9,6 +8,7 @@ const TimeDimensionEnum = z.enum([
   "morning",
   "noon",
   "evening",
+  "quick_note",
   "custom",
 ]);
 

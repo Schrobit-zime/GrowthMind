@@ -77,13 +77,14 @@ export async function GET(request: NextRequest) {
     if (format === "csv") {
       const flat = data.map((r) => {
         if (type === "records") {
+          const rec = r as RecordRow;
           return {
-            ...r,
-            learning: r.learning ? JSON.stringify(r.learning) : "",
-            work: r.work ? JSON.stringify(r.work) : "",
-            life: r.life ? JSON.stringify(r.life) : "",
-            health: r.health ? JSON.stringify(r.health) : "",
-            mood: r.mood ? JSON.stringify(r.mood) : "",
+            ...rec,
+            learning: rec.learning ? JSON.stringify(rec.learning) : "",
+            work: rec.work ? JSON.stringify(rec.work) : "",
+            life: rec.life ? JSON.stringify(rec.life) : "",
+            health: rec.health ? JSON.stringify(rec.health) : "",
+            mood: rec.mood ? JSON.stringify(rec.mood) : "",
           };
         }
         return r;
@@ -108,8 +109,8 @@ export async function GET(request: NextRequest) {
       for (const row of data) {
         const text =
           type === "records"
-            ? `[${row.recordDate}] ${row.timeDimension} - ${row.summary || "无摘要"}`
-            : `[${row.name}] ${row.dimension} - ${row.currentValue}/${row.targetValue} (${row.status})`;
+            ? `[${(row as RecordRow).recordDate}] ${(row as RecordRow).timeDimension} - ${(row as RecordRow).summary || "无摘要"}`
+            : `[${(row as GoalRow).name}] ${(row as GoalRow).dimension} - ${(row as GoalRow).currentValue}/${(row as GoalRow).targetValue} (${(row as GoalRow).status})`;
 
         const lines = doc.splitTextToSize(text, 180);
         for (const line of lines) {

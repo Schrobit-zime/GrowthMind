@@ -10,6 +10,7 @@ import { StatCard } from "@/components/cards/stat-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { ChartErrorBoundary } from "@/components/shared/chart-error-boundary";
 
 // 图表组件动态导入，减少首屏 JS 体积
 const TrendChart = dynamic(() => import("@/components/charts/trend-chart"), {
@@ -54,7 +55,7 @@ function hasDimensionData(dim: Record<string, unknown>): boolean {
 }
 
 export default function HomePage() {
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
   const [showMore, setShowMore] = useState(false);
 
   const displayName = profile?.displayName || "用户";
@@ -64,22 +65,25 @@ export default function HomePage() {
     loading: recordsLoading,
     error: recordsError,
     refetch: refetchRecords,
-  } = useFetch<RecordItem[]>("/api/records?limit=50");
+  } = useFetch<RecordItem[]>("/api/records?limit=50", { enabled: !!session?.access_token });
 
   const {
     data: goals,
     loading: goalsLoading,
     error: goalsError,
-  } = useFetch<GoalItem[]>("/api/goals");
+  } = useFetch<GoalItem[]>("/api/goals", { enabled: !!session?.access_token });
 
   const isLoading = recordsLoading || goalsLoading;
   const error = recordsError || goalsError;
 
   /** 计算今日各维度汇总 */
   const todaySummary = useMemo(() => {
-    if (!records || records.length === 0) return null;
+    const safeRecords = records || [];
+    if (safeRecords.length === 0) return null;
     const today = new Date().toISOString().slice(0, 10);
-    const todayRecords = records.filter((r) => r.recordDate && r.recordDate.slice(0, 10) === today);
+    const todayRecords = safeRecords.filter(
+      (r) => r.recordDate && r.recordDate.slice(0, 10) === today,
+    );
 
     const learningCount = todayRecords.filter((r) => hasDimensionData(r.learning)).length;
     const workCount = todayRecords.filter((r) => hasDimensionData(r.work)).length;
@@ -142,8 +146,9 @@ export default function HomePage() {
 
   /** 从 moodScore 生成趋势数据（最近14天，从旧到新排序） */
   const moodTrendPoints = useMemo(() => {
-    if (!records || records.length === 0) return [];
-    const sorted = [...records]
+    const safeRecords = records || [];
+    if (safeRecords.length === 0) return [];
+    const sorted = [...safeRecords]
       .filter((r): r is RecordItem & { moodScore: number } => r.moodScore != null)
       .sort((a, b) => new Date(a.recordDate).getTime() - new Date(b.recordDate).getTime())
       .slice(-14);
@@ -161,8 +166,9 @@ export default function HomePage() {
 
   /** 目标进度 */
   const goalItems = useMemo(() => {
-    if (!goals || goals.length === 0) return [];
-    return goals
+    const safeGoals = goals || [];
+    if (safeGoals.length === 0) return [];
+    return safeGoals
       .filter((g) => g.status === "active")
       .slice(0, 5)
       .map((g) => ({
@@ -178,13 +184,14 @@ export default function HomePage() {
 
   /** 热力图数据：最近21天每日记录数 */
   const heatmapData = useMemo(() => {
-    if (!records || records.length === 0) return [];
+    const safeRecords = records || [];
+    if (safeRecords.length === 0) return [];
     const days: { date: string; count: number }[] = [];
     for (let i = 20; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().slice(0, 10);
-      const count = records.filter(
+      const count = safeRecords.filter(
         (r) => r.recordDate && r.recordDate.slice(0, 10) === dateStr,
       ).length;
       days.push({ date: dateStr, count });
@@ -194,13 +201,14 @@ export default function HomePage() {
 
   /** 五维综合评估 */
   const radarScores = useMemo(() => {
-    if (!records || records.length === 0) return [0, 0, 0, 0, 0];
-    const total = records.length;
-    const learningPct = records.filter((r) => hasDimensionData(r.learning)).length / total;
-    const workPct = records.filter((r) => hasDimensionData(r.work)).length / total;
-    const lifePct = records.filter((r) => hasDimensionData(r.life)).length / total;
-    const healthPct = records.filter((r) => hasDimensionData(r.health)).length / total;
-    const moodScores = records.filter(
+    const safeRecords = records || [];
+    if (safeRecords.length === 0) return [0, 0, 0, 0, 0];
+    const total = safeRecords.length;
+    const learningPct = safeRecords.filter((r) => hasDimensionData(r.learning)).length / total;
+    const workPct = safeRecords.filter((r) => hasDimensionData(r.work)).length / total;
+    const lifePct = safeRecords.filter((r) => hasDimensionData(r.life)).length / total;
+    const healthPct = safeRecords.filter((r) => hasDimensionData(r.health)).length / total;
+    const moodScores = safeRecords.filter(
       (r): r is RecordItem & { moodScore: number } => r.moodScore != null,
     );
     const moodPct =
@@ -287,28 +295,30 @@ export default function HomePage() {
 
       {/* Trend chart */}
       {hasAnyData && moodTrendPoints.length > 0 && (
-        <div className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">心情趋势</h2>
-            <div className="flex gap-1 bg-surface-container rounded-lg p-1">
-              {["周", "月"].map((tab) => (
-                <button
-                  key={tab}
-                  className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                    tab === "周"
-                      ? "bg-primary text-on-primary"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
+        <ChartErrorBoundary>
+          <div className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">心情趋势</h2>
+              <div className="flex gap-1 bg-surface-container rounded-lg p-1">
+                {["周", "月"].map((tab) => (
+                  <button
+                    key={tab}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                      tab === "周"
+                        ? "bg-primary text-on-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="h-48">
+              <TrendChart data={moodTrendPoints} dataKeys={["score"]} xAxisKey="label" />
             </div>
           </div>
-          <div className="h-48">
-            <TrendChart data={moodTrendPoints} dataKeys={["score"]} xAxisKey="label" />
-          </div>
-        </div>
+        </ChartErrorBoundary>
       )}
 
       {/* Expand more */}
@@ -333,21 +343,23 @@ export default function HomePage() {
 
       {/* Expanded charts */}
       {hasAnyData && showMore && (
-        <div className="space-y-6">
-          {/* Radar chart */}
-          <div className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">五维综合评估</h2>
-            <div className="h-56">
-              <RadarChartComponent data={radarData} maxValue={100} />
+        <ChartErrorBoundary>
+          <div className="space-y-6">
+            {/* Radar chart */}
+            <div className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4">五维综合评估</h2>
+              <div className="h-56">
+                <RadarChartComponent data={radarData} maxValue={100} />
+              </div>
+            </div>
+
+            {/* Heatmap */}
+            <div className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4">本月活跃度</h2>
+              <Heatmap data={heatmapData.map((d) => ({ date: d.date, value: d.count }))} />
             </div>
           </div>
-
-          {/* Heatmap */}
-          <div className="bg-surface/40 backdrop-blur-xl border border-border/20 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4">本月活跃度</h2>
-            <Heatmap data={heatmapData.map((d) => ({ date: d.date, value: d.count }))} />
-          </div>
-        </div>
+        </ChartErrorBoundary>
       )}
 
       {/* Goal progress */}

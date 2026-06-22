@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
         stream: true,
         temperature: 0.7,
       }),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (!gatewayResponse.ok) {
@@ -100,9 +101,17 @@ export async function POST(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
+          let lastChunkTime = Date.now();
+          const TIMEOUT_MS = 30000;
+
           while (true) {
+            if (Date.now() - lastChunkTime > TIMEOUT_MS) {
+              controller.error(new Error("Stream timeout"));
+              break;
+            }
             const { done, value } = await reader.read();
             if (done) break;
+            lastChunkTime = Date.now();
             const chunk = decoder.decode(value, { stream: true });
             accumulatedResult += chunk;
             controller.enqueue(value);

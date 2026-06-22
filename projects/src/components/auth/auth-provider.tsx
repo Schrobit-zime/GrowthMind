@@ -69,14 +69,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) return;
-      const data = await res.json();
-      if (data) {
+      const json = await res.json();
+      const profileData = json.data || json;
+      if (profileData && profileData.id) {
         setProfile({
-          id: data.id,
-          userId: data.userId,
-          displayName: data.displayName,
-          role: data.role,
-          avatarUrl: data.avatarUrl,
+          id: profileData.id,
+          userId: profileData.userId,
+          displayName: profileData.displayName,
+          role: profileData.role,
+          avatarUrl: profileData.avatarUrl,
         });
       }
     } catch (err) {
@@ -95,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const timeout = setTimeout(() => {
       if (mounted) setIsLoading(false);
-    }, 10000);
+    }, 5000);
 
     async function init() {
       try {

@@ -31,7 +31,7 @@ export const records = pgTable("records", {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   userId: uuid("user_id").notNull(),
-  timeDimension: text("time_dimension").notNull(), // 'daily' | 'weekly' | 'monthly' | 'semiannual' | 'annual' | 'morning' | 'noon' | 'evening' | 'custom'
+  timeDimension: text("time_dimension").notNull(), // 'weekly' | 'monthly' | 'semiannual' | 'annual' | 'morning' | 'noon' | 'evening' | 'quick_note' | 'custom'
   recordDate: text("record_date").notNull(), // ISO date string
   customLabel: text("custom_label"),
 

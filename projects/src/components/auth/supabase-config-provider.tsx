@@ -43,10 +43,12 @@ export function SupabaseConfigProvider({ children }: SupabaseConfigProviderProps
         return res.json();
       })
       .then((data) => {
-        if (data.url && data.anonKey) {
-          setConfig(data);
-          (window as unknown as { __SUPABASE_CONFIG__: SupabaseConfig }).__SUPABASE_CONFIG__ = data;
-          window.dispatchEvent(new CustomEvent(SUPABASE_CONFIG_READY_EVENT, { detail: data }));
+        const config = data.data || data;
+        if (config.url && config.anonKey) {
+          setConfig(config);
+          (window as unknown as { __SUPABASE_CONFIG__: SupabaseConfig }).__SUPABASE_CONFIG__ =
+            config;
+          window.dispatchEvent(new CustomEvent(SUPABASE_CONFIG_READY_EVENT, { detail: config }));
         } else {
           throw new Error("Invalid config response");
         }

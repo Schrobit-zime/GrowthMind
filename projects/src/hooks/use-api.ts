@@ -26,7 +26,10 @@ export function useFetch<T = unknown>(
   const abortRef = useRef<AbortController | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!session?.access_token || !enabled) return;
+    if (!session?.access_token || !enabled) {
+      setState((p) => ({ ...p, loading: false }));
+      return;
+    }
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
